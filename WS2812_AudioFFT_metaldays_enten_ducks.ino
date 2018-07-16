@@ -1,13 +1,16 @@
-#include "FastLED.h"
+#include <WS2812Serial.h>
+#define USE_WS2812SERIAL
+#include <FastLED.h>
 #include <Audio.h>
 #include <SD.h>
 #include <Wire.h>
 
-///////////////////////////////////////////////////////////////////////////////////////////
-//
-// Move a white dot along the strip of leds.  This program simply shows how to configure the leds,
-// and then how to turn a single pixel white and then off, moving down the line of pixels.
-// 
+///// Requirements:
+/// * newest FastLED from GitHub (master branch > 3.1.6)
+/// * PJRC Audio (included in Teensyduino)
+/// * Teensy 3.2
+/// * https://github.com/PaulStoffregen/WS2812Serial
+///
 
 // How many leds are in the strip?
 #define NUM_LEDS 150
@@ -15,7 +18,7 @@
 typedef uint8_t ledctr_t;
 
 // Data pin that led data will be written out over
-#define WS2812_PIN 4
+#define WS2812_PIN 5
 
 #define BUTTON_PIN 11
 
@@ -59,7 +62,8 @@ void setup() {
 	// sanity check delay - allows reprogramming if accidently blowing power w/leds	
 	delay(2000);
 
-	FastLED.addLeds<WS2812B, WS2812_PIN,  RGB>(leds_, NUM_LEDS);
+	FastLED.addLeds<WS2812SERIAL,WS2812_PIN,GRB>(leds_,NUM_LEDS);
+	FastLED.setBrightness(84);
 	pinMode(LED_PIN,OUTPUT);
 	digitalWrite(LED_PIN, LOW);
 	pinMode(BUTTON_PIN, INPUT_PULLUP);
