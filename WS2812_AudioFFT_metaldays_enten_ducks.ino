@@ -42,6 +42,9 @@ AudioAnalyzePeak         photoPeak;          //xy=310.33331298828125,287.3333129
 AudioConnection          patchCord1(adc_stereo, 0, audioRMS, 0);
 AudioConnection          patchCord2(adc_stereo, 0, audioFFT, 0);
 AudioConnection          patchCord3(adc_stereo, 1, photoPeak, 0);
+AudioOutputUSB           usb1;           //xy=220.3333282470703,342.3333282470703
+AudioConnection          patchCord4(adc_stereo, 0, usb1, 0);
+AudioConnection          patchCord5(adc_stereo, 1, usb1, 1);
 // GUItool: end automatically generated code
 
 #define FFT_SIZE 256
