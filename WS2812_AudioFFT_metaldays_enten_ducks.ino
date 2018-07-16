@@ -28,9 +28,9 @@ typedef uint8_t ledctr_t;
 
 #define MICROPHONE_AIN A0  //14
 
-#define PHOTODIODE_AIN A9  //23
+#define PHOTODIODE_AIN A3  //17
 
-#define BUTTON_DEBOUNCE  6
+#define BUTTON_DEBOUNCE  400
 #define LIGHT_THRESHOLD (300*3300/4096)  //300mV
 #define LIGHT_DEBOUNCE 30000
 
