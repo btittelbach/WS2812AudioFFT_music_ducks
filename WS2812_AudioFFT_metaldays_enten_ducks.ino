@@ -1,12 +1,7 @@
 #include "FastLED.h"
-//#include <Audio.h>
-//#include <SD.h>
-//#include <Wire.h>
-#define LOG_OUT 1 // use the log output function
-#define FHT_LOG 8
-#define FHT_N (1<<FHT_LOG) // set to 256 point fht
-#define OCTAVE 1
-#include <FHT.h>
+#include <Audio.h>
+#include <SD.h>
+#include <Wire.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -30,23 +25,21 @@ typedef uint8_t ledctr_t;
 
 #define PHOTODIODE_AIN A9  //23
 
-#define BUTTON_DEBOUNCE  20
+#define BUTTON_DEBOUNCE  6
 #define LIGHT_THRESHOLD (300*3300/4096)  //300mV
 #define LIGHT_DEBOUNCE 30000
 
 // GUItool: begin automatically generated code
-/*
-//// NOT ON TEENSY-LC
-AudioInputAnalog         adc1(MICROPHONE_AIN);           //xy=240.3333282470703,59.33332824707031
-AudioAnalyzeFFT256       audioFFT;       //xy=315.33331298828125,157.33334350585938
-AudioAnalyzeRMS          audioRMS;           //xy=414.33331298828125,74.33333587646484
-AudioConnection          patchCord1(adc1, audioFFT);
-AudioConnection          patchCord2(adc1, audioRMS);
-*/
+AudioInputAnalogStereo   adc_stereo(MICROPHONE_AIN, PHOTODIODE_AIN);          //xy=70.33332824707031,228.33334350585938
+AudioAnalyzeRMS          audioRMS;           //xy=297.33331298828125,201.33334350585938
+AudioAnalyzeFFT256       audioFFT;       //xy=305.33331298828125,240.33334350585938
+AudioAnalyzePeak         photoPeak;          //xy=310.33331298828125,287.33331298828125
+AudioConnection          patchCord1(adc_stereo, 0, audioRMS, 0);
+AudioConnection          patchCord2(adc_stereo, 0, audioFFT, 0);
+AudioConnection          patchCord3(adc_stereo, 1, photoPeak, 0);
 // GUItool: end automatically generated code
 
-#define AUTOSCALE 1
-
+#define FFT_SIZE 256
 
 typedef uint8_t animation_t;
 const animation_t ANIM_FFT_SPARKLES_WHEN_DARK=0;
@@ -93,7 +86,11 @@ void task_check_lightlevel()
 {
 	static int16_t dark_count_=0;
 
-	uint16_t level = analogRead(PHOTODIODE_AIN);
+	if (!photoPeak.available())
+		return;
+
+	// uint16_t level = analogReadADC1(PHOTODIODE_AIN);
+	uint16_t level = photoPeak.read()*4096;
 	if (level > LIGHT_THRESHOLD)
 	{
 		//assume daylight
@@ -115,43 +112,9 @@ void task_check_lightlevel()
 	}
 }
 
-void task_sample_mic()
+inline void task_sample_mic()
 {
-	int32_t avg = 0;
-	for(int i=0; i<FHT_N; i++)
-	{
-		int16_t val = analogRead(MICROPHONE_AIN);
-		fht_input[i] = val;
-	}
-
-	fht_window(); // window the data for better frequency response
-	fht_reorder(); // reorder the data before doing the fht
-	fht_run(); // process the data in the fht
-	fht_mag_octave(); // take the output of the fht
-
-	// Serial.write(255); // send a start byte
-	// Serial.write(fht_log_out, FHT_N/2); // send out the data
-
-// 	//remove DC offset and gain up to 16 bits
-// 	avg = avg/FHT_N;
-// 	for (int i=0; i<FHT_N; i++)
-// 		fft_data_[i] = (fft_data_[i] - avg) * 64;
-
-// 	//run the FFT
-// 	ZeroFFT(fft_data_, FHT_N);
-
-// #if AUTOSCALE
-//   //get the maximum value
-//   float maxVal = 0;
-//   //fft_data_ is only meaningful up to sample rate/2, discard the other half
-//   for(int i=0; i<FHT_N/2; i++)
-//   	if(fft_data_[i] > maxVal)
-//   		maxVal = fft_data_[i];
-
-//   //normalize to the maximum returned value
-//   for(int i=0; i<FHT_N/2; i++)
-//     fft_data_[i] =(float)fft_data_[i] / maxVal * 256;
-// #endif
+	//done by PJRC Audio
 
 }
 
@@ -164,61 +127,108 @@ uint16_t animation_black()
 
 uint16_t animation_fft_hue()
 {
-	for (ledctr_t l=0; l<min(FHT_N/2,NUM_LEDS);l++)
+	if (!audioFFT.available())
+		return 2;
+	for (ledctr_t l=0; l<min(FFT_SIZE,NUM_LEDS);l++)
 	{
-		CHSV x(fht_log_out[l],128,fht_log_out[l]);
+		uint8_t v = audioFFT.read(l)*0xff;
+		CHSV x(v,128,60);
 		hsv2rgb_rainbow(x,leds_[l]);
 	}
-	return 1; //1ms max delay
+	return 10; //1ms max delay
+}
+
+#define NUM_OCTAVES  8 //log2(256)
+
+void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
+{
+	led_octaves_magnitude[0] =  audioFFT.read(0) * 0xff;
+    led_octaves_magnitude[1] =  audioFFT.read(1) * 0xff;
+    led_octaves_magnitude[2] =  audioFFT.read(2,  3) * 0xff;
+    led_octaves_magnitude[3] =  audioFFT.read(4,  7) * 0xff;
+    led_octaves_magnitude[4] =  audioFFT.read(8,  16) * 0xff;
+    led_octaves_magnitude[5] = audioFFT.read(17,  32) * 0xff;
+    led_octaves_magnitude[6] = audioFFT.read(33, 64) * 0xff;
+    led_octaves_magnitude[7] = audioFFT.read(65, 127) * 0xff;
 }
 
 uint16_t animation_fft_octaves()
 {
-	const uint8_t num_octaves = FHT_LOG;
-	const ledctr_t ledwith_octave = NUM_LEDS / num_octaves;
-	for (ledctr_t oct=0; oct < num_octaves; oct++)
+	if (!audioFFT.available())
+		return 2;
+	uint8_t led_octaves_magnitude[NUM_OCTAVES];
+	//calc octaves magnitude
+	fft_calc_octaves255(led_octaves_magnitude);
+
+	//paint octaves to every second pixel
+	for (ledctr_t o=0; o < NUM_OCTAVES; o++)
 	{
-		ledctr_t middle = oct*ledwith_octave + (ledwith_octave/2);
-		ledctr_t width = fht_oct_out[oct] * ledwith_octave / (1<<(sizeof(int16_t)-1));
-		uint8_t value = fht_oct_out[oct] * ledwith_octave / (1<<(sizeof(int16_t)-1));
-	}	
+		hsv2rgb_rainbow(CHSV(led_octaves_magnitude[o],128,led_octaves_magnitude[o]),leds_[o*2]);
+	}
+
+	//interpolate pixels in between
+	for (ledctr_t o=0; o < NUM_OCTAVES-1; o++)
+	{
+		leds_[o*2+1].r = (leds_[o*2].r+leds_[(o+1)*2].r) / 2;
+		leds_[o*2+1].g = (leds_[o*2].g+leds_[(o+1)*2].g) / 2;
+		leds_[o*2+1].b = (leds_[o*2].b+leds_[(o+1)*2].b) / 2;
+	}
+
+	// /// repeat Pattern until strip ends
+	// for (ledctr_t l=NUM_OCTAVES*2; l < NUM_LEDS; l+=(NUM_OCTAVES*2+3))
+	// {
+	// 	leds_[l] = CRGB::Black;
+	// 	leds_[l+1] = CRGB::Black;
+	// 	leds_[l+2] = CRGB::Black;
+	// 	for (ledctr_t o=0; o < NUM_OCTAVES*2; o++)
+	// 	{
+	// 		leds_[l+3+o]=leds_[o];
+	// 	}
+	// }
+
+	return 10;
 }
 
-uint16_t animation_whitestrip()
+		// ledctr_t middle = oct*ledwith_octave + (ledwith_octave/2);
+		// ledctr_t width = fht_oct_out[oct] * ledwith_octave / (1<<(sizeof(int16_t)-1));
+		// uint8_t value = fht_oct_out[oct] * ledwith_octave / (1<<(sizeof(int16_t)-1));
+
+uint16_t animation_striptest()
 {
 	static ledctr_t whiteLed=0;
 	// Turn our current led on to white, then show the leds
-	leds_[whiteLed] = CRGB::Black;
-	leds_[addmod8(whiteLed,1,NUM_LEDS)] = CRGB::White;
-	leds_[addmod8(whiteLed,2,NUM_LEDS)] = CRGB::White;
-	leds_[addmod8(whiteLed,3,NUM_LEDS)] = CRGB::White;
+	leds_[whiteLed+0] = CRGB::Black;
+	leds_[(whiteLed+1)%NUM_LEDS] = CRGB::Blue;
+	leds_[(whiteLed+2)%NUM_LEDS] = CRGB::Green;
+	leds_[(whiteLed+3)%NUM_LEDS] = CRGB::Red;
+	leds_[(whiteLed+4)%NUM_LEDS] = CRGB::White;
 	whiteLed++;
-	whiteLed%=NUM_LEDS;
+	whiteLed %= NUM_LEDS;
 	return 100;
 }
 
-/*
+
 uint16_t animation_audio_rms()
 {
 	static uint32_t audiopower=0;
 	if (!audioRMS.available())
-		return 10;
+		return 2;
 	float rms = audioRMS.read(); //0.0 ... 1.0
 	audiopower+=static_cast<uint32_t>(rms*20);
 	for (ledctr_t l=NUM_LEDS-1; l>0; l++)
 	{
-		leds[l]=leds[l-1];
+		leds_[l]=leds_[l-1];
 	}
 	if (audiopower > 0)
 	{
-		leds[0]=CRGB::Orange;
+		leds_[0]=CRGB::Orange;
 		audiopower--;
 	} else {
-		leds[0]=CRGB::Black;
+		leds_[0]=CRGB::Black;
 	}
-	return 10;
+	return 100;
 }
-*/
+
 
 void task_animate_leds()
 {
@@ -233,18 +243,18 @@ void task_animate_leds()
 		default:
 		case ANIM_FFT_SPARKLES_WHEN_DARK:
 			if (is_dark_)
-				delay_ms=animation_fft_hue(); //FIXME
+				delay_ms=animation_audio_rms(); //FIXME
 			else
 				delay_ms=animation_black();
 			break;
 		case ANIM_FFT:
-			delay_ms=animation_whitestrip(); //FIXME
+			delay_ms=animation_fft_hue(); //FIXME
 			break;
 		case ANIM_SPARKLES:
-			delay_ms=animation_whitestrip(); //FIXME
+			delay_ms=animation_fft_octaves(); //FIXME
 			break;
 		case ANIM_WHITESTRIP_TEST:
-			delay_ms=animation_whitestrip(); //FIXME
+			delay_ms=animation_striptest(); //FIXME
 			break;
 	}
 	// Show the leds (only one of which is set to white, from above)
@@ -257,7 +267,8 @@ void task_check_button()
 	static uint16_t btn_count_=0;
 	if (digitalRead(BUTTON_PIN) == LOW)
 	{
-		btn_count_++;
+		if (btn_count_ < BUTTON_DEBOUNCE+1)
+			btn_count_++;
 	} else {
 		btn_count_=0;
 	}
@@ -267,6 +278,8 @@ void task_check_button()
 		animation_current_++;
 		animation_current_%=NUM_ANIM;
 		save_to_EEPROM();
+		for (ledctr_t led=0; led<NUM_LEDS; led++)
+			leds_[led] = CRGB::Black;
 	}
 }
 
