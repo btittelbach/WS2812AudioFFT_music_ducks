@@ -53,10 +53,11 @@ typedef uint8_t animation_t;
 const animation_t ANIM_FFT_SPARKLES_WHEN_DARK=0;
 const animation_t ANIM_FFT=1;
 const animation_t ANIM_SPARKLES=2;
-const animation_t ANIM_WHITESTRIP_TEST=3;
-const animation_t NUM_ANIM=4;
+const animation_t ANIM_STRIP_TEST=3;
+const animation_t ANIM_PHOTOSENSOR_TEST=4;
+const animation_t NUM_ANIM=5;
 
-animation_t animation_current_=ANIM_FFT_SPARKLES_WHEN_DARK;
+animation_t animation_current_=ANIM_PHOTOSENSOR_TEST;
 bool is_dark_=true;
 
 // This is an array of leds.  One item for each led in your strip.
@@ -91,16 +92,16 @@ void load_from_EEPROM()
 /*
 analogRead() must not be used, because AudioInputAnalog is regularly accessing the ADC hardware. If both access the hardware at the same moment, analogRead() can end up waiting forever, which effectively crashes your program. 
 */
+int16_t dark_count_=0;
+uint16_t light_level=0;
 void task_check_lightlevel()
 {
-	static int16_t dark_count_=0;
-
 	if (!photoPeak.available())
 		return;
 
-	// uint16_t level = analogReadADC1(PHOTODIODE_AIN);
-	uint16_t level = photoPeak.read()*4096;
-	if (level > LIGHT_THRESHOLD)
+	// uint16_t light_level = analogReadADC1(PHOTODIODE_AIN);
+	light_level = photoPeak.read()*4095;
+	if (light_level > LIGHT_THRESHOLD)
 	{
 		//assume daylight
 		if (dark_count_ < LIGHT_DEBOUNCE) {
@@ -140,7 +141,7 @@ uint16_t animation_fft_hue()
 		return 2;
 	for (ledctr_t l=0; l<min(FFT_SIZE,NUM_LEDS);l++)
 	{
-		uint8_t v = audioFFT.read(l)*0xff;
+		uint8_t v = static_cast<uint8_t>(audioFFT.read(l)*255.0);
 		CHSV x(v,128,60);
 		hsv2rgb_rainbow(x,leds_[l]);
 	}
@@ -216,6 +217,23 @@ uint16_t animation_striptest()
 	return 100;
 }
 
+uint16_t animation_photosensor_level()
+{
+	for (ledctr_t l=0; l<NUM_LEDS; l++)
+	{
+		leds_[l]=CRGB::Black;
+	}
+	for (ledctr_t l=0; l<(light_level*NUM_LEDS/4095); l++)
+	{
+		leds_[l].b=60;
+	}
+	for (ledctr_t l=0; l<((dark_count_+LIGHT_DEBOUNCE)*NUM_LEDS/(2*LIGHT_DEBOUNCE)); l++)
+	{
+		leds_[l].r=60;
+	}
+	return 100;
+}
+
 
 uint16_t animation_audio_rms()
 {
@@ -262,8 +280,11 @@ void task_animate_leds()
 		case ANIM_SPARKLES:
 			delay_ms=animation_fft_octaves(); //FIXME
 			break;
-		case ANIM_WHITESTRIP_TEST:
+		case ANIM_STRIP_TEST:
 			delay_ms=animation_striptest(); //FIXME
+			break;
+		case ANIM_PHOTOSENSOR_TEST:
+			delay_ms=animation_photosensor_level(); //FIXME
 			break;
 	}
 	// Show the leds (only one of which is set to white, from above)
