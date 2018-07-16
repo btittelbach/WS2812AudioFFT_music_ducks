@@ -2,8 +2,10 @@
 #define USE_WS2812SERIAL
 #include <FastLED.h>
 #include <Audio.h>
-#include <SD.h>
 #include <Wire.h>
+#include <SPI.h>
+#include <SD.h>
+#include <SerialFlash.h>
 
 ///// Requirements:
 /// * newest FastLED from GitHub (master branch > 3.1.6)
