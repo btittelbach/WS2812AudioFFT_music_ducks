@@ -196,42 +196,84 @@ void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
     led_octaves_magnitude[7] = audioFFT.read(65, 127) /last_max_peak_ * 0xff;
 }
 
+uint8_t get_fft_octaves_beat(uint8_t led_octaves_magnitude[NUM_OCTAVES])
+{
+	uint8_t beat=0;
+	for (uint8_t o=1; o<NUM_OCTAVES; o++)
+	{
+		beat += ((led_octaves_magnitude[0] > 180)? 1:0);
+	}
+	//again for last one, adding +2 in sum if beat.
+	beat += ((led_octaves_magnitude[NUM_OCTAVES-1] > 180)? 1:0);
+	return beat;
+}
+
 millis_t animation_fft_octaves()
 {
+	static uint8_t last_beat=0;
+	static ledctr_t led_shift=0;
+
+	const millis_t default_delay=10;
+
 	if (!audioFFT.available() || !audioPeak.available())
 		return 2;
 	uint8_t led_octaves_magnitude[NUM_OCTAVES];
 	//calc octaves magnitude
 	fft_calc_octaves255(led_octaves_magnitude);
 	last_max_peak_ = max(last_max_peak_,audioPeak.read());
+	uint8_t beat = get_fft_octaves_beat(led_octaves_magnitude);
 
-	//paint octaves to every second pixel
-	for (ledctr_t o=0; o < NUM_OCTAVES; o++)
-	{
-		hsv2rgb_rainbow(CHSV(led_octaves_magnitude[o],128,led_octaves_magnitude[o]),leds_[o*2]);
+	//set brightness depending on beat
+    if (beat >= 7)
+    {
+		fill_solid(leds_, NUM_LEDS, CRGB::Gray);
+        FastLED.setBrightness(120);
+        return default_delay;
+    } else if (last_beat != beat)
+    {
+        FastLED.setBrightness( 40+beat*beat*5 );
+        last_beat = beat;
 	}
 
-	//interpolate pixels in between
-	for (ledctr_t o=0; o < NUM_OCTAVES-1; o++)
+	const ledctr_t start_octave = 0;
+	const ledctr_t spectr_width = (NUM_OCTAVES-start_octave)*2-1; //8 + 7 in between = 15
+	const ledctr_t spectr_repetitions = NUM_LEDS / spectr_width;
+
+	for (ledctr_t repetition=0; repetition<spectr_repetitions; repetition++)
 	{
-		leds_[o*2+1].r = (leds_[o*2].r+leds_[(o+1)*2].r) / 2;
-		leds_[o*2+1].g = (leds_[o*2].g+leds_[(o+1)*2].g) / 2;
-		leds_[o*2+1].b = (leds_[o*2].b+leds_[(o+1)*2].b) / 2;
+		ledctr_t start_pos = spectr_width*repetition;
+		//paint octaves to every second pixel
+		for (ledctr_t o=start_octave; o < NUM_OCTAVES; o++)
+		{
+			hsv2rgb_rainbow(
+				CHSV(led_octaves_magnitude[o] + repetition*30,
+					constrain(led_octaves_magnitude[o]+30, 0,0xff),
+					led_octaves_magnitude[o])
+				,leds_[addmod8(start_pos+o*2,led_shift,NUM_LEDS)]
+			);
+		}
+
+		//interpolate pixels in between
+		for (ledctr_t o=start_octave; o < NUM_OCTAVES-1; o++)
+		{
+			ledctr_t pos_before = addmod8(start_pos+o*2,led_shift,NUM_LEDS);
+			ledctr_t pos_between = addmod8(pos_before+1,led_shift,NUM_LEDS);
+			ledctr_t pos_after   = addmod8(pos_before+2,led_shift,NUM_LEDS);
+			leds_[pos_between].r = (leds_[pos_before].r+leds_[pos_after].r) / 2;
+			leds_[pos_between].g = (leds_[pos_before].g+leds_[pos_after].g) / 2;
+			leds_[pos_between].b = (leds_[pos_before].b+leds_[pos_after].b) / 2;
+		}
 	}
 
-	// /// repeat Pattern until strip ends
-	// for (ledctr_t l=NUM_OCTAVES*2; l < NUM_LEDS; l+=(NUM_OCTAVES*2+3))
-	// {
-	// 	leds_[l] = CRGB::Black;
-	// 	leds_[l+1] = CRGB::Black;
-	// 	leds_[l+2] = CRGB::Black;
-	// 	for (ledctr_t o=0; o < NUM_OCTAVES*2; o++)
-	// 	{
-	// 		leds_[l+3+o]=leds_[o];
-	// 	}
-	// }
+	if (beat > 0)
+	{
+		led_shift+=((beat+4)/2-2);
+	}
 
-	return 10;
+	if (beat>3 && beat<7)
+        return default_delay*2;
+    else
+		return default_delay;
 }
 
 		// ledctr_t middle = oct*ledwith_octave + (ledwith_octave/2);
@@ -308,7 +350,7 @@ void task_animate_leds()
 		default:
 		case ANIM_FFT_SPARKLES_WHEN_DARK:
 			if (is_dark_)
-				delay_ms=animation_striptest(); //FIXME
+				delay_ms=animation_fft_octaves(); //FIXME
 			else
 				delay_ms=animation_black();
 			break;
@@ -349,9 +391,9 @@ void task_check_button()
 		animation_current_++;
 		animation_current_%=NUM_ANIM;
 		save_to_EEPROM();
-		for (ledctr_t led=0; led<NUM_LEDS; led++)
-			leds_[led] = CRGB::Black;
+		fill_solid(leds_, NUM_LEDS, CRGB::Black);
 		last_max_peak_=0.01;
+		FastLED.setBrightness(120);
 	}
 }
 
