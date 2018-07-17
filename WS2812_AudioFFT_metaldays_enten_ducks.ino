@@ -336,6 +336,21 @@ millis_t animation_audio_rms_hue()
 	return 4;
 }
 
+millis_t animation_plasma()
+{
+	static ledctr_t steps=0;
+	for (ledctr_t i=0;i<NUM_LEDS;i++)
+	{
+		uint16_t spani = (0x7f*(uint16_t)i)/(NUM_LEDS-1);
+		uint8_t s = quadwave8(add8(steps,mul8(spani,8)));
+		uint8_t u = quadwave8((-(steps<<1)-mul8(spani,3)+(quadwave8(spani<<1))));
+		leds_[i].r=s;
+		leds_[i].g=u;
+		leds_[i].b=0;
+	}
+	steps++;
+}
+
 void task_animate_leds()
 {
 	static millis_t next_run=0;
