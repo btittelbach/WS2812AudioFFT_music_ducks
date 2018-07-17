@@ -84,6 +84,16 @@ AnimationGravityDots anim_gravity_dots;
 RunOnlyInDarkness anim_gravity_dots_when_dark(anim_gravity_dots, anim_fade_to_black);
 AnimationFireworks anim_fireworks;
 RunOnlyInDarkness anim_fireworks_when_dark(anim_fireworks, anim_fade_to_black);
+AnimationFire2012 anim_fire2012;
+RunOnlyInDarkness anim_fire2012_when_dark(anim_fire2012, anim_fade_to_black);
+AnimationConfetti anim_confetti;
+RunOnlyInDarkness anim_confetti_when_dark(anim_confetti, anim_fade_to_black);
+AnimationRainbowGlitter anim_rainbow(false);
+RunOnlyInDarkness anim_rainbow_when_dark(anim_rainbow, anim_fade_to_black);
+AnimationRainbowGlitter anim_rainbow_w_glitter(true);
+RunOnlyInDarkness anim_rainbow_w_glitter_when_dark(anim_rainbow_w_glitter, anim_fade_to_black);
+
+
 AnimationFullFFT anim_fft_full_and_boring;
 AnimationPhotosensorDebugging anim_photoresistor_debugging;
 AnimationStripTest anim_strip_debugging;
@@ -99,6 +109,14 @@ std::vector<BaseAnimation> animations_list_=
 	,anim_gravity_dots_when_dark
 	,anim_fireworks
 	,anim_fireworks_when_dark
+	,anim_fire2012
+	,anim_fire2012_when_dark
+	,anim_confetti
+	,anim_confetti_when_dark
+	,anim_rainbow
+	,anim_rainbow_when_dark
+	,anim_rainbow_w_glitter
+	,anim_rainbow_w_glitter_when_dark
 	,anim_fft_full_and_boring
 	,anim_photoresistor_debugging
 	,anim_strip_debugging

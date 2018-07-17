@@ -385,6 +385,131 @@ public:
 	}
 };
 
+//(c) FastLED
+class AnimationFire2012 : public BaseAnimation {
+public:
+// Fire2012 by Mark Kriegsman, July 2012
+// as part of "Five Elements" shown here: http://youtu.be/knWiGsmgycY
+//// 
+// This basic one-dimensional 'fire' simulation works roughly as follows:
+// There's a underlying array of 'heat' cells, that model the temperature
+// at each point along the line.  Every cycle through the simulation, 
+// four steps are performed:
+//  1) All cells cool down a little bit, losing heat to the air
+//  2) The heat from each cell drifts 'up' and diffuses a little
+//  3) Sometimes randomly new 'sparks' of heat are added at the bottom
+//  4) The heat from each cell is rendered as a color into the leds array
+//     The heat-to-color mapping uses a black-body radiation approximation.
+//
+// Temperature is in arbitrary units from 0 (cold black) to 255 (white hot).
+//
+// This simulation scales it self a bit depending on NUM_LEDS; it should look
+// "OK" on anywhere from 20 to 100 LEDs without too much tweaking. 
+//
+// I recommend running this simulation at anywhere from 30-100 frames per second,
+// meaning an interframe delay of about 10-35 milliseconds.
+//
+// Looks best on a high-density LED setup (60+ pixels/meter).
+//
+//
+// There are two main parameters you can play with to control the look and
+// feel of your fire: COOLING (used in step 1 above), and SPARKING (used
+// in step 3 above).
+//
+// COOLING: How much does the air cool as it rises?
+// Less cooling = taller flames.  More cooling = shorter flames.
+// Default 50, suggested range 20-100 
+#define COOLING  55
+
+// SPARKING: What chance (out of 255) is there that a new spark will be lit?
+// Higher chance = more roaring fire.  Lower chance = more flickery fire.
+// Default 120, suggested range 50-200.
+#define SPARKING 120
+
+
+	virtual millis_t run()
+	{
+	// Array of temperature readings at each simulation cell
+	  static byte heat[NUM_LEDS];
+
+	  // Step 1.  Cool down every cell a little
+	    for( int i = 0; i < NUM_LEDS; i++) {
+	      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / NUM_LEDS) + 2));
+	    }
+	  
+	    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+	    for( int k= NUM_LEDS - 1; k >= 2; k--) {
+	      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+	    }
+	    
+	    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+	    if( random8() < SPARKING ) {
+	    	int y = random8(7);
+	    	heat[y] = qadd8( heat[y], random8(160,255) );
+	    }
+
+	    // Step 4.  Map from heat cells to LED colors
+	    for( int j = 0; j < NUM_LEDS; j++) {
+	    	CRGB color = HeatColor( heat[j]);
+	    	int pixelnumber;
+	    	pixelnumber = j;
+	    	leds_[pixelnumber] = color;
+	    }
+	    return 1000/60;
+	}
+};
+
+//(c) FastLED
+class AnimationConfetti : public BaseAnimation {
+private:
+	uint8_t cur_hue_ = 0;
+	uint8_t ctr_ = 0;
+
+public:
+
+	virtual millis_t run()
+	{
+		fadeToBlackBy( leds_, NUM_LEDS, 10);
+		int pos = random16(NUM_LEDS);
+		leds_[pos] += CHSV( cur_hue_ + random8(64), 200, 255);
+		if (ctr_++ % 8 == 0)
+			cur_hue_++;
+		return 1000/60;
+	}
+};
+
+
+class AnimationRainbowGlitter : public BaseAnimation {
+private:
+	bool with_glitter_ = false;
+	uint8_t cur_hue_ = 0;
+
+	void rainbow() 
+	{
+		// FastLED's built-in rainbow generator
+		fill_rainbow( leds_, NUM_LEDS, cur_hue_, 7);
+	}
+
+	void addGlitter( fract8 chanceOfGlitter) 
+	{
+		if( random8() < chanceOfGlitter) {
+			leds_[ random16(NUM_LEDS) ] += CRGB::White;
+		}
+	}
+
+public:
+	AnimationRainbowGlitter(bool with_glitter=true) : with_glitter_(with_glitter) {}
+
+	virtual millis_t run()
+	{
+		rainbow();
+		if (with_glitter_)
+			addGlitter(80);
+		cur_hue_++;
+		return 1000/60;
+	}
+};
+
 
 // ledctr_t middle = oct*ledwith_octave + (ledwith_octave/2);
 // ledctr_t width = fht_oct_out[oct] * ledwith_octave / (1<<(sizeof(int16_t)-1));
