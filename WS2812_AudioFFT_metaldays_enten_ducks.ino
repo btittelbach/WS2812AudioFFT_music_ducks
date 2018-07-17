@@ -37,6 +37,12 @@ typedef unsigned long millis_t;
 #define LIGHT_THRESHOLD (500*3300/4096)  //500mV
 #define LIGHT_DEBOUNCE 30000
 
+
+#define EEPROM_CURRENT_VERSION 0
+#define EEPROM_ADDR_VERS 0
+#define EEPROM_ADDR_CURANIM 1
+
+
 // GUItool: begin automatically generated code
 #ifdef PHOTORESISTOR_USE_ADC
 AudioInputAnalogStereo   adc_stereo(MICROPHONE_AIN, PHOTORESISTOR_AIN);          //xy=70.33332824707031,228.33334350585938
@@ -86,7 +92,7 @@ void setup() {
 	delay(2000);
 
 	FastLED.addLeds<WS2812SERIAL,WS2812_PIN,GRB>(leds_,NUM_LEDS);
-	FastLED.setBrightness(84);
+	FastLED.setBrightness(127);
 	pinMode(LED_PIN,OUTPUT);
 	digitalWrite(LED_PIN, LOW);
 	pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -98,12 +104,18 @@ void setup() {
 
 void save_to_EEPROM()
 {
-	//TODO
+  if (eeprom_read_byte((const uint8_t*)EEPROM_ADDR_VERS) != EEPROM_CURRENT_VERSION)
+    eeprom_write_byte((uint8_t *) EEPROM_ADDR_VERS, EEPROM_CURRENT_VERSION);
+  if (animation_current_ != eeprom_read_byte((const uint8_t*)EEPROM_ADDR_CURANIM))
+    eeprom_write_byte((uint8_t *) EEPROM_ADDR_CURANIM, animation_current_);
 }
 
 void load_from_EEPROM()
 {
-	//TODO
+  if (eeprom_read_byte(EEPROM_ADDR_VERS) != EEPROM_CURRENT_VERSION)
+    return;
+
+  animation_current_ = eeprom_read_byte((const uint8_t*)EEPROM_ADDR_CURANIM) % NUM_ANIM;
 }
 
 //TODO FIXME
