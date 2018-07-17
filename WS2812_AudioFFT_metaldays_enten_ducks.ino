@@ -71,15 +71,21 @@ AudioConnection          patchCord4(adc_stereo, 1, photoPeak, 0);
 #define FFT_SIZE 256
 
 typedef uint8_t animation_t;
-const animation_t ANIM_FFT_SPARKLES_WHEN_DARK=0;
-const animation_t ANIM_FFT=1;
-const animation_t ANIM_SPARKLES=2;
-const animation_t ANIM_STRIP_TEST=3;
-const animation_t ANIM_PHOTOSENSOR_TEST=4;
-const animation_t ANIM_RMS=5;
-const animation_t NUM_ANIM=6;
+const animation_t ANIM_FFT_OCTAVES=0;
+const animation_t ANIM_FFT_OCTAVES_WHEN_DARK=1;
+const animation_t ANIM_PLASMA=2;
+const animation_t ANIM_PLASMA_WHEN_DARK=3;
+const animation_t ANIM_ELECTRIC_SPARKLES=4;
+const animation_t ANIM_ELECTRIC_SPARKLES_WHEN_DARK=5;
+const animation_t ANIM_GRAVITY_DOTS=6;
+const animation_t ANIM_GRAVITY_DOTS_WHEN_DARK=7;
+const animation_t ANIM_RMS_HUE=8;
+const animation_t ANIM_RMS_HUE_WHEN_DARK=9;
+const animation_t ANIM_STRIP_TEST=10;
+const animation_t ANIM_PHOTOSENSOR_TEST=11;
+const animation_t NUM_ANIM=12;
 
-animation_t animation_current_=ANIM_FFT_SPARKLES_WHEN_DARK;
+animation_t animation_current_=ANIM_FFT_OCTAVES_WHEN_DARK;
 bool is_dark_=true;
 float last_max_peak_=0.01;
 
@@ -118,10 +124,7 @@ void load_from_EEPROM()
   animation_current_ = eeprom_read_byte((const uint8_t*)EEPROM_ADDR_CURANIM) % NUM_ANIM;
 }
 
-//TODO FIXME
-/*
-analogRead() must not be used, because AudioInputAnalog is regularly accessing the ADC hardware. If both access the hardware at the same moment, analogRead() can end up waiting forever, which effectively crashes your program.
-*/
+
 int32_t dark_count_=0;
 uint16_t light_level=0;
 void task_check_lightlevel()
@@ -363,20 +366,29 @@ void task_animate_leds()
 	switch (animation_current_)
 	{
 		default:
-		case ANIM_FFT_SPARKLES_WHEN_DARK:
+		case ANIM_FFT_OCTAVES_WHEN_DARK:
 			if (is_dark_)
-				delay_ms=animation_fft_octaves(); //FIXME
+				delay_ms=animation_fft_octaves();
 			else
 				delay_ms=animation_black();
 			break;
-		case ANIM_RMS:
+		case ANIM_FFT_OCTAVES:
+			delay_ms=animation_fft_octaves();
+			break;
+		case ANIM_PLASMA_WHEN_DARK:
+			if (is_dark_)
+				delay_ms=animation_plasma();
+			else
+				delay_ms=animation_black();
+			break;
+		case ANIM_PLASMA:
+			delay_ms=animation_plasma();
+			break;
+		case ANIM_RMS_HUE:
 			delay_ms=animation_audio_rms_hue();
 			break;
-		case ANIM_FFT:
+		case ANIM_ELECTRIC_SPARKLES:
 			delay_ms=animation_fft_hue(); //FIXME
-			break;
-		case ANIM_SPARKLES:
-			delay_ms=animation_fft_octaves(); //FIXME
 			break;
 		case ANIM_STRIP_TEST:
 			delay_ms=animation_striptest(); //FIXME
