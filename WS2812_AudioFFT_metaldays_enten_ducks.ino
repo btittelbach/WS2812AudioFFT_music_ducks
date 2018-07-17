@@ -6,6 +6,7 @@
 #include <SPI.h>
 #include <SD.h>
 #include <SerialFlash.h>
+#include <vector>
 
 ///// Requirements:
 /// * newest FastLED from GitHub (master branch > 3.1.6)
@@ -87,7 +88,7 @@ AnimationFullFFT anim_fft_full_and_boring;
 AnimationPhotosensorDebugging anim_photoresistor_debugging;
 AnimationStripTest anim_strip_debugging;
 
-BaseAnimation animations_list_[]=
+std::vector<BaseAnimation> animations_list_=
 	{anim_fft_octaves
 	,anim_fft_octaves_when_dark
 	,anim_rms_hue
@@ -104,7 +105,7 @@ BaseAnimation animations_list_[]=
 	};
 
 uint8_t animation_current_= 1;
-#define NUM_ANIM sizeof(animations_list_)/sizeof(BaseAnimation)
+#define NUM_ANIM animations_list_.size()
 
 
 // This function sets up the ledsand tells the controller about them
