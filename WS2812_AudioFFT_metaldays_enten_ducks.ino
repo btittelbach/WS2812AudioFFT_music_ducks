@@ -98,7 +98,7 @@ void setup() {
 	pinMode(BUTTON_PIN, INPUT_PULLUP);
 	pinMode(PHOTORESISTOR_AIN, INPUT);
 	pinMode(PHOTORESISTOR_PIN, INPUT);
-	pinMode(MICROPHONE_AIN, INPUT);	
+	pinMode(MICROPHONE_AIN, INPUT);
 	load_from_EEPROM();
 }
 
@@ -120,7 +120,7 @@ void load_from_EEPROM()
 
 //TODO FIXME
 /*
-analogRead() must not be used, because AudioInputAnalog is regularly accessing the ADC hardware. If both access the hardware at the same moment, analogRead() can end up waiting forever, which effectively crashes your program. 
+analogRead() must not be used, because AudioInputAnalog is regularly accessing the ADC hardware. If both access the hardware at the same moment, analogRead() can end up waiting forever, which effectively crashes your program.
 */
 int32_t dark_count_=0;
 uint16_t light_level=0;
@@ -135,7 +135,7 @@ void task_check_lightlevel()
 	if (light_level > LIGHT_THRESHOLD)
 #else
 	if (digitalRead(PHOTORESISTOR_PIN) == LOW)
-#endif		
+#endif
 	{
 		//assume daylight
 		if (dark_count_ < LIGHT_DEBOUNCE) {
@@ -401,11 +401,11 @@ void task_heartbeat()
 {
 	static bool hbled=false;
 	digitalWrite(LED_PIN,(hbled)?HIGH:LOW);
-	hbled = !hbled;	
+	hbled = !hbled;
 }
 
 void loop() {
-   // Move a single white led_ 
+   // Move a single white led_
    task_heartbeat();
    task_check_button();
    task_check_lightlevel();
