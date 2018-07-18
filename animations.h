@@ -215,14 +215,15 @@ uint8_t get_fft_octaves_beat(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 	uint8_t beat=0;
 	for (uint8_t o=1; o<NUM_OCTAVES; o++)
 	{
-		beat += ((led_octaves_magnitude[0] > beat_threshold)? 1:0);
+		beat += ((led_octaves_magnitude[o] > beat_threshold)? 1:0);
 	}
 	//again for last one, adding +2 in sum if beat.
 	beat += ((led_octaves_magnitude[NUM_OCTAVES-1] > beat_threshold)? 1:0);
 	return beat;
 }
 
-
+// heavily inspired and some calculations and estimations borrowed from buzzandy
+// (https://www.hackster.io/buzzandy/music-reactive-led-strip-5645ed)
 class AnimationFFTOctaves : public BaseAnimation {
 private:
 	uint8_t last_beat=0;
