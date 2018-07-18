@@ -185,11 +185,11 @@ public:
 
 void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 {
-	led_octaves_magnitude[0] =  audioFFT.read(0) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[1] =  audioFFT.read(1) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[2] =  audioFFT.read(2,  3) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[3] =  audioFFT.read(4,  7) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[4] =  audioFFT.read(8,  16) /last_max_peak_ * 0xff;
+	led_octaves_magnitude[0] = audioFFT.read(0) /last_max_peak_ * 0xff;
+    led_octaves_magnitude[1] = audioFFT.read(1) /last_max_peak_ * 0xff;
+    led_octaves_magnitude[2] = audioFFT.read(2,  3) /last_max_peak_ * 0xff;
+    led_octaves_magnitude[3] = audioFFT.read(4,  7) /last_max_peak_ * 0xff;
+    led_octaves_magnitude[4] = audioFFT.read(8,  16) /last_max_peak_ * 0xff;
     led_octaves_magnitude[5] = audioFFT.read(17,  32) /last_max_peak_ * 0xff;
     led_octaves_magnitude[6] = audioFFT.read(33, 64) /last_max_peak_ * 0xff;
     led_octaves_magnitude[7] = audioFFT.read(65, 127) /last_max_peak_ * 0xff;
@@ -197,13 +197,14 @@ void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 
 uint8_t get_fft_octaves_beat(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 {
+	const uint8_t beat_threshold=180;
 	uint8_t beat=0;
 	for (uint8_t o=1; o<NUM_OCTAVES; o++)
 	{
-		beat += ((led_octaves_magnitude[0] > 180)? 1:0);
+		beat += ((led_octaves_magnitude[0] > beat_threshold)? 1:0);
 	}
 	//again for last one, adding +2 in sum if beat.
-	beat += ((led_octaves_magnitude[NUM_OCTAVES-1] > 180)? 1:0);
+	beat += ((led_octaves_magnitude[NUM_OCTAVES-1] > beat_threshold)? 1:0);
 	return beat;
 }
 
@@ -302,7 +303,7 @@ public:
 		for (ledctr_t l=0; l<min(FFT_SIZE,NUM_LEDS);l++)
 		{
 			uint8_t v = static_cast<uint8_t>(audioFFT.read(l)*255.0);
-			CHSV x(v,128,60);
+			CHSV x(l*4,255,v);
 			hsv2rgb_rainbow(x,leds_[l]);
 		}
 		return 10; //1ms max delay
