@@ -1,6 +1,9 @@
-WS2812 FFT Visualisation for realraum Ducks and music festivals
-===============================================================
+WS2812 FFT Visualisation for realraum Ducks and music or hacker festivals
+=========================================================================
 
+Needed something quick and dirty, not clean an shiny, thus Arduino Environment was used.
+
+Kudos to Paul Stoffregen's work on his audio library.
 
 Usage
 -----

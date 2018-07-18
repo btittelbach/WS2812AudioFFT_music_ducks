@@ -1,3 +1,6 @@
+//(c) Bernhard Tittelbach, xro@realraum.at, 2018
+//MIT license, except where code from other projects was borrowed and other licenses might apply
+
 #include <WS2812Serial.h>
 #define USE_WS2812SERIAL
 #include <FastLED.h>

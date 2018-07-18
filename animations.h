@@ -1,6 +1,10 @@
 #ifndef ANIMATIONS_INCLUDE__H
 #define ANIMATIONS_INCLUDE__H
 
+//(c) Bernhard Tittelbach, xro@realraum.at, 2018
+//MIT license, except where code from other projects was borrowed and other licenses might apply
+
+
 #include <vector>
 
 typedef uint32_t ledctr_t;
