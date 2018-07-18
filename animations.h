@@ -14,7 +14,7 @@ public:
 	{
 		fill_solid(leds_, NUM_LEDS, CRGB::Black);
 		last_max_peak_=0.01;
-		FastLED.setBrightness(128);
+		FastLED.setBrightness(80);
 	}
 
 	virtual millis_t run()
@@ -27,8 +27,8 @@ class AnimationBlack : public BaseAnimation {
 public:
 	virtual millis_t run()
 	{
-		CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(60);
-		return 600;
+		CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(20);
+		return 200;
 	}
 };
 
@@ -89,6 +89,12 @@ private:
 	uint8_t steps_=0;
 
 public:
+	virtual void init()
+	{
+		BaseAnimation::init();
+		FastLED.setBrightness(64);
+	}
+
 	virtual millis_t run()
 	{
 		
@@ -207,6 +213,12 @@ private:
 	ledctr_t led_shift=0;
 
 public:
+	virtual void init()
+	{
+		BaseAnimation::init();
+		FastLED.setBrightness(255);
+	}
+
 	virtual millis_t run()
 	{
 		const millis_t default_delay=10;
@@ -264,6 +276,7 @@ public:
 		if (beat > 0)
 		{
 			led_shift+=((beat+4)/2-2);
+			led_shift%=NUM_LEDS;
 		}
 
 		if (beat>3 && beat<7)
@@ -275,6 +288,12 @@ public:
 
 class AnimationFullFFT : public BaseAnimation {
 public:
+	virtual void init()
+	{
+		BaseAnimation::init();
+		FastLED.setBrightness(255);
+	}
+
 	virtual millis_t run()
 	{
 		if (!audioFFT.available())
@@ -305,6 +324,7 @@ public:
 	virtual void init()
 	{
 		BaseAnimation::init();
+		FastLED.setBrightness(164);
 		CHSV dothsv;
 		dothsv.v=128;
 		dothsv.s=0xFF;
@@ -377,7 +397,7 @@ public:
 		{
 			this->init();
 		}
-		return 250;
+		return 1000/12;
 	}
 };
 
@@ -569,6 +589,15 @@ private:
 
 public:
 	AnimationRainbowGlitter(bool with_glitter=true) : with_glitter_(with_glitter) {}
+
+	virtual void init()
+	{
+		BaseAnimation::init();
+		if (with_glitter_)
+			FastLED.setBrightness(32);
+		else
+			FastLED.setBrightness(64);
+	}
 
 	virtual millis_t run()
 	{
