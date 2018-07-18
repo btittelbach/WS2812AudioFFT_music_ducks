@@ -106,16 +106,22 @@ AnimationRainbowGlitter anim_rainbow(false);
 RunOnlyInDarkness anim_rainbow_when_dark(anim_rainbow, anim_fade_to_black);
 AnimationRainbowGlitter anim_rainbow_w_glitter(true);
 RunOnlyInDarkness anim_rainbow_w_glitter_when_dark(anim_rainbow_w_glitter, anim_fade_to_black);
-std::vector<BaseAnimation*> collection_of_nice_animations1 = {&anim_plasma,&anim_fireworks,&anim_rainbow_w_glitter,&anim_confetti,&anim_fire2012};
-AutoSwitchAnimationCollection anim_collection_switcher1(1000*60*1,collection_of_nice_animations1);
-RunOnlyInDarkness anim_darkness_auto_collection1(anim_collection_switcher1, anim_fade_to_black);
-std::vector<BaseAnimation*> collection_of_audio_animations2 = {&anim_rms_confetti,&anim_fft_octaves,&anim_rms_hue};
-AutoSwitchAnimationCollection anim_collection_switcher2(1000*60*2,collection_of_audio_animations2);
-RunOnlyInDarkness anim_darkness_auto_collection2(anim_collection_switcher2, anim_fade_to_black);
-
 AnimationFullFFT anim_fft_full_and_boring;
 AnimationPhotosensorDebugging anim_photoresistor_debugging;
 AnimationStripTest anim_strip_debugging;
+std::vector<BaseAnimation*> collection_of_nice_animations1 =
+	{&anim_plasma,&anim_fireworks
+	,&anim_rainbow_w_glitter
+	,&anim_confetti,&anim_fire2012
+	};
+AutoSwitchAnimationCollection anim_collection_switcher1(1000*60*1,collection_of_nice_animations1);
+RunOnlyInDarkness anim_darkness_auto_collection1(anim_collection_switcher1, anim_fade_to_black);
+std::vector<BaseAnimation*> collection_of_audio_animations2 =
+	{&anim_rms_confetti
+	,&anim_fft_octaves
+	,&anim_rms_hue};
+AutoSwitchAnimationCollection anim_collection_switcher2(1000*60*2,collection_of_audio_animations2);
+RunOnlyInDarkness anim_darkness_auto_collection2(anim_collection_switcher2, anim_fade_to_black);
 
 std::vector<BaseAnimation*> animations_list_=
 	{&anim_fft_octaves
