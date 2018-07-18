@@ -29,9 +29,9 @@
 //#define PHOTORESISTOR_USE_ADC
 
 #define NUM_LEDS 150
-#define BUTTON_DEBOUNCE  400
+#define BUTTON_DEBOUNCE  500
 #define LIGHT_THRESHOLD (500*3300/4096)  //500mV
-#define LIGHT_DEBOUNCE 30000
+#define LIGHT_DEBOUNCE 50000
 
 #define EEPROM_CURRENT_VERSION 0
 #define EEPROM_ADDR_VERS 0
@@ -132,13 +132,14 @@ void setup() {
 	delay(2000);
 
 	FastLED.addLeds<WS2812SERIAL,WS2812_PIN,GRB>(leds_,NUM_LEDS);
-	FastLED.setBrightness(127);
 	pinMode(LED_PIN,OUTPUT);
 	digitalWrite(LED_PIN, LOW);
 	pinMode(BUTTON_PIN, INPUT_PULLUP);
 	pinMode(PHOTORESISTOR_AIN, INPUT);
 	pinMode(PHOTORESISTOR_PIN, INPUT);
 	pinMode(MICROPHONE_AIN, INPUT);
+	//init animation
+	animations_list_[animation_current_].init();
 	load_from_EEPROM();
 }
 
@@ -227,7 +228,12 @@ void task_check_button()
 	if (digitalRead(BUTTON_PIN) == LOW)
 	{
 		if (btn_count_ < BUTTON_DEBOUNCE+1)
+		{
 			btn_count_++;
+			digitalWrite(LED_PIN,HIGH);
+		} else {
+			digitalWrite(LED_PIN,LOW);
+		}
 	} else {
 		btn_count_=0;
 	}

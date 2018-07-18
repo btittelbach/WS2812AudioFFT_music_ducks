@@ -1,8 +1,6 @@
 #ifndef ANIMATIONS_INCLUDE__H
 #define ANIMATIONS_INCLUDE__H
 
-#include <FastLED.h>
-
 typedef uint32_t ledctr_t;
 typedef unsigned long millis_t;
 
@@ -14,7 +12,7 @@ public:
 	{
 		fill_solid(leds_, NUM_LEDS, CRGB::Black);
 		last_max_peak_=0.01;
-		FastLED.setBrightness(120);		
+		FastLED.setBrightness(128);
 	}
 
 	virtual millis_t run()
