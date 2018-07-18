@@ -36,11 +36,26 @@ class RunOnlyInDarkness : public BaseAnimation {
 private:
 	BaseAnimation *dark_animation;
 	BaseAnimation *light_animation;
+	bool  last_dark=false;
 public:
 	RunOnlyInDarkness(BaseAnimation &in_darkness, BaseAnimation &in_daylight) :dark_animation(&in_darkness), light_animation(&in_daylight) {}
 
+	virtual void init()
+	{
+		if (is_dark_)
+			return dark_animation->init();
+		else
+			return light_animation->init();
+	}
+
 	virtual millis_t run()
 	{
+		if (last_dark != is_dark_)
+		{
+			last_dark = is_dark_;
+			init();
+		}
+
 		if (is_dark_)
 			return dark_animation->run();
 		else 
