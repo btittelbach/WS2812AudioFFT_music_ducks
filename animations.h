@@ -408,16 +408,16 @@ public:
 	{
 		uint8_t color = random8();
 		uint32_t prevLed, thisLed, nextLed;
-		bool triggered = random(6) == 3;
+		bool triggered = random(30) == 3;
 
-		CPixelView<CRGB>(leds_,0,NUM_LEDS).nscale8(128); // reduce each LEDs brightness by half
+		fadeToBlackBy(leds_,NUM_LEDS,127); // reduce each LEDs brightness by half
 
 		// set brightness(i) = ((brightness(i-1)/4 + brightness(i+1)) / 4) + brightness(i)
 		for (ledctr_t i=0 + 1; i <NUM_LEDS; i++)
 		{
-			prevLed = (reinterpret_cast<uint32_t>(leds_[i-1].raw) >> 2) & 0x3F3F3F3F;
-			thisLed = reinterpret_cast<uint32_t>(leds_[i].raw);
-			nextLed = (reinterpret_cast<uint32_t>(leds_[i+1].raw) >> 2) & 0x3F3F3F3F;
+			prevLed = (*reinterpret_cast<uint32_t*>(leds_[i-1].raw) >> 2) & 0x3F3F3F3F;
+			thisLed = *reinterpret_cast<uint32_t*>(leds_[i].raw);
+			nextLed = (*reinterpret_cast<uint32_t*>(leds_[i+1].raw) >> 2) & 0x3F3F3F3F;
 			leds_[i] = CRGB(prevLed + thisLed + nextLed);
 		}
 
@@ -427,16 +427,16 @@ public:
 			{
 				if(random(10) == 0)
 				{
-					hsv2rgb_rainbow(CHSV(color,128,0xff),leds_[0 + random(NUM_LEDS)]);
+					hsv2rgb_rainbow(CHSV(color,0xff,0xff),leds_[0 + random(NUM_LEDS)]);
 				}
 			}
 		} else
 		{
 			for(ledctr_t i=0; i<max(1, NUM_LEDS/10); i++) {
-				hsv2rgb_rainbow(CHSV(color,128,0xff),leds_[0 + random(NUM_LEDS)]);
+				hsv2rgb_rainbow(CHSV(color,200,0xff),leds_[0 + random(NUM_LEDS)]);
 			}
 		}
-		return 40;
+		return 1000/20;
 	}
 };
 
