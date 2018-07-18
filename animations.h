@@ -55,11 +55,11 @@ class AutoSwitchAnimationCollection : public BaseAnimation {
 private:
 	std::vector <BaseAnimation*> &autoswitch_list_;
 	std::vector <BaseAnimation*>::iterator curanim_;
-	millis_t switch_after_ms_;
+	millis_t switch_after_ms_=0;
 	millis_t next_switch_=0;
 
 public:
-	AutoSwitchAnimationCollection(millis_t switch_after_ms, std::vector<BaseAnimation*> &anim_list) : switch_after_ms_(switch_after_ms), autoswitch_list_(anim_list), curanim_(autoswitch_list_.begin()) {}
+	AutoSwitchAnimationCollection(millis_t switch_after_ms, std::vector<BaseAnimation*> &anim_list) : autoswitch_list_(anim_list), curanim_(autoswitch_list_.begin()), switch_after_ms_(switch_after_ms) {}
 
 	virtual void init()
 	{
