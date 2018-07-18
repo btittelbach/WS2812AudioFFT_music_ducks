@@ -1,0 +1,409 @@
+EESchema Schematic File Version 4
+LIBS:WS2812AudioFFT-cache
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title "WS2812B FFT Teensy"
+Date ""
+Rev ""
+Comp "Bernhard Tittelbach"
+Comment1 "xro@realraum.at"
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L teensy:Teensy3.2 U?
+U 1 1 5B4F62D7
+P 5300 3850
+F 0 "U?" H 5300 5437 60  0000 C CNN
+F 1 "Teensy3.2" H 5300 5331 60  0000 C CNN
+F 2 "" H 5300 3050 60  0000 C CNN
+F 3 "" H 5300 3050 60  0000 C CNN
+	1    5300 3850
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED:WS2812B D?
+U 1 1 5B4F63F2
+P 8350 4100
+F 0 "D?" H 8691 4146 50  0000 L CNN
+F 1 "WS2812B" H 8691 4055 50  0000 L CNN
+F 2 "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm" H 8400 3800 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8450 3725 50  0001 L TNN
+	1    8350 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED:WS2812B D?
+U 1 1 5B4F6428
+P 9200 4100
+F 0 "D?" H 9541 4146 50  0000 L CNN
+F 1 "WS2812B" H 9541 4055 50  0000 L CNN
+F 2 "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm" H 9250 3800 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 9300 3725 50  0001 L TNN
+	1    9200 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8650 4100 8900 4100
+$Comp
+L power:+BATT #PWR?
+U 1 1 5B4F6872
+P 7750 2850
+F 0 "#PWR?" H 7750 2700 50  0001 C CNN
+F 1 "+BATT" H 7765 3023 50  0000 C CNN
+F 2 "" H 7750 2850 50  0001 C CNN
+F 3 "" H 7750 2850 50  0001 C CNN
+	1    7750 2850
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5B4F68DC
+P 7750 3000
+F 0 "#PWR?" H 7750 2750 50  0001 C CNN
+F 1 "GND" H 7755 2827 50  0000 C CNN
+F 2 "" H 7750 3000 50  0001 C CNN
+F 3 "" H 7750 3000 50  0001 C CNN
+	1    7750 3000
+	1    0    0    -1  
+$EndComp
+Text Notes 7600 2950 0    50   ~ 0
+18650 LiPo Battery
+Wire Notes Line
+	7500 2600 7500 3250
+Wire Notes Line
+	7500 3250 8400 3250
+Wire Notes Line
+	8400 3250 8400 2600
+Wire Notes Line
+	8400 2600 7500 2600
+$Comp
+L power:+BATT #PWR?
+U 1 1 5B4F6A98
+P 8350 3800
+F 0 "#PWR?" H 8350 3650 50  0001 C CNN
+F 1 "+BATT" H 8365 3973 50  0000 C CNN
+F 2 "" H 8350 3800 50  0001 C CNN
+F 3 "" H 8350 3800 50  0001 C CNN
+	1    8350 3800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8350 3800 9200 3800
+Connection ~ 8350 3800
+Wire Wire Line
+	8350 4400 9200 4400
+$Comp
+L power:GND #PWR?
+U 1 1 5B4F6ADD
+P 8350 4400
+F 0 "#PWR?" H 8350 4150 50  0001 C CNN
+F 1 "GND" H 8355 4227 50  0000 C CNN
+F 2 "" H 8350 4400 50  0001 C CNN
+F 3 "" H 8350 4400 50  0001 C CNN
+	1    8350 4400
+	1    0    0    -1  
+$EndComp
+Connection ~ 8350 4400
+NoConn ~ 9500 4050
+Text Notes 9500 3950 0    50   ~ 0
+LED strip continues
+$Comp
+L power:+BATT #PWR?
+U 1 1 5B4F6BCC
+P 6700 4650
+F 0 "#PWR?" H 6700 4500 50  0001 C CNN
+F 1 "+BATT" H 6715 4823 50  0000 C CNN
+F 2 "" H 6700 4650 50  0001 C CNN
+F 3 "" H 6700 4650 50  0001 C CNN
+	1    6700 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6700 4650 6300 4650
+$Comp
+L power:GND #PWR?
+U 1 1 5B4F6C90
+P 4000 2550
+F 0 "#PWR?" H 4000 2300 50  0001 C CNN
+F 1 "GND" H 4005 2377 50  0000 C CNN
+F 2 "" H 4000 2550 50  0001 C CNN
+F 3 "" H 4000 2550 50  0001 C CNN
+	1    4000 2550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 2550 4300 2550
+$Comp
+L power:+3V3 #PWR?
+U 1 1 5B4F6DE5
+P 3750 4050
+F 0 "#PWR?" H 3750 3900 50  0001 C CNN
+F 1 "+3V3" H 3765 4223 50  0000 C CNN
+F 2 "" H 3750 4050 50  0001 C CNN
+F 3 "" H 3750 4050 50  0001 C CNN
+	1    3750 4050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GNDA #PWR?
+U 1 1 5B4F706A
+P 6700 4750
+F 0 "#PWR?" H 6700 4500 50  0001 C CNN
+F 1 "GNDA" H 6705 4577 50  0000 C CNN
+F 2 "" H 6700 4750 50  0001 C CNN
+F 3 "" H 6700 4750 50  0001 C CNN
+	1    6700 4750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6700 4750 6300 4750
+$Comp
+L Device:R_PHOTO R?
+U 1 1 5B4F727C
+P 2750 4450
+F 0 "R?" H 2820 4496 50  0000 L CNN
+F 1 "R_PHOTO" H 2820 4405 50  0000 L CNN
+F 2 "" V 2800 4200 50  0001 L CNN
+F 3 "~" H 2750 4400 50  0001 C CNN
+	1    2750 4450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 5B4F72C7
+P 2750 4050
+F 0 "R?" H 2820 4096 50  0000 L CNN
+F 1 "2K8" H 2820 4005 50  0000 L CNN
+F 2 "" V 2680 4050 50  0001 C CNN
+F 3 "~" H 2750 4050 50  0001 C CNN
+	1    2750 4050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_POT_TRIM RV?
+U 1 1 5B4F7509
+P 2750 4850
+F 0 "RV?" H 2680 4896 50  0000 R CNN
+F 1 "100_POT_TRIM" H 2680 4805 50  0000 R CNN
+F 2 "" H 2750 4850 50  0001 C CNN
+F 3 "~" H 2750 4850 50  0001 C CNN
+	1    2750 4850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_POT_TRIM RV?
+U 1 1 5B4F7535
+P 2750 3650
+F 0 "RV?" H 2680 3696 50  0000 R CNN
+F 1 "10K_POT_TRIM" H 2680 3605 50  0000 R CNN
+F 2 "" H 2750 3650 50  0001 C CNN
+F 3 "~" H 2750 3650 50  0001 C CNN
+	1    2750 3650
+	1    0    0    -1  
+$EndComp
+Text Label 4050 4850 2    50   ~ 0
+LightSensor
+Wire Wire Line
+	4050 4850 4300 4850
+Text Label 4050 4750 2    50   ~ 0
+Microphone
+Wire Wire Line
+	4050 4750 4300 4750
+Text Notes 8600 4550 0    50   ~ 0
+WS2812B Strip. 5m 150LEDS
+Text Label 8050 4100 2    50   ~ 0
+WS2812Data
+Wire Notes Line
+	10300 3550 7500 3550
+Wire Notes Line
+	10300 4650 7500 4650
+Wire Notes Line
+	7500 3550 7500 4650
+Wire Notes Line
+	10300 3550 10300 4650
+Text Label 3050 4300 0    50   ~ 0
+LightSensor
+Wire Wire Line
+	3050 4300 2750 4300
+$Comp
+L power:GNDA #PWR?
+U 1 1 5B4F8441
+P 2900 4950
+F 0 "#PWR?" H 2900 4700 50  0001 C CNN
+F 1 "GNDA" H 2905 4777 50  0000 C CNN
+F 2 "" H 2900 4950 50  0001 C CNN
+F 3 "" H 2900 4950 50  0001 C CNN
+	1    2900 4950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2750 4600 2750 4700
+Wire Wire Line
+	2900 4850 2900 4950
+NoConn ~ 2750 5000
+Wire Wire Line
+	2750 4200 2750 4300
+Connection ~ 2750 4300
+Wire Wire Line
+	2750 3800 2750 3900
+$Comp
+L power:+3V3 #PWR?
+U 1 1 5B4F914A
+P 3000 3650
+F 0 "#PWR?" H 3000 3500 50  0001 C CNN
+F 1 "+3V3" H 3015 3823 50  0000 C CNN
+F 2 "" H 3000 3650 50  0001 C CNN
+F 3 "" H 3000 3650 50  0001 C CNN
+	1    3000 3650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 3650 2900 3650
+NoConn ~ 2750 3500
+$Comp
+L Connector:Conn_01x03_Female J?
+U 1 1 5B4F971C
+P 2500 2600
+F 0 "J?" H 2394 2275 50  0000 C CNN
+F 1 "Microphone Breakout Connector" H 2394 2366 50  0000 C CNN
+F 2 "" H 2500 2600 50  0001 C CNN
+F 3 "~" H 2500 2600 50  0001 C CNN
+	1    2500 2600
+	-1   0    0    1   
+$EndComp
+Text Label 2850 2700 0    50   ~ 0
+Microphone
+Wire Wire Line
+	2850 2700 2700 2700
+$Comp
+L power:GNDA #PWR?
+U 1 1 5B4F9CE9
+P 3400 2600
+F 0 "#PWR?" H 3400 2350 50  0001 C CNN
+F 1 "GNDA" H 3405 2427 50  0000 C CNN
+F 2 "" H 3400 2600 50  0001 C CNN
+F 3 "" H 3400 2600 50  0001 C CNN
+	1    3400 2600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3400 2600 2700 2600
+$Comp
+L power:+3V3 #PWR?
+U 1 1 5B4F9F53
+P 3400 2500
+F 0 "#PWR?" H 3400 2350 50  0001 C CNN
+F 1 "+3V3" H 3415 2673 50  0000 C CNN
+F 2 "" H 3400 2500 50  0001 C CNN
+F 3 "" H 3400 2500 50  0001 C CNN
+	1    3400 2500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3400 2500 2700 2500
+Text Notes 2400 2700 2    50   ~ 0
+SparkFun MEMS\nMicrophone Breakout\nINMP401
+Wire Notes Line
+	2400 2450 2400 2750
+Wire Notes Line
+	2400 2750 1600 2750
+Wire Notes Line
+	1600 2750 1600 2450
+Wire Notes Line
+	1600 2450 2400 2450
+$Comp
+L Switch:SW_Push SW?
+U 1 1 5B4FABB6
+P 2650 5900
+F 0 "SW?" H 2650 6185 50  0000 C CNN
+F 1 "SW_Push" H 2650 6094 50  0000 C CNN
+F 2 "" H 2650 6100 50  0001 C CNN
+F 3 "" H 2650 6100 50  0001 C CNN
+	1    2650 5900
+	1    0    0    -1  
+$EndComp
+Text Label 4150 4450 2    50   ~ 0
+TeensyLED
+Wire Wire Line
+	4150 4450 4300 4450
+Text Label 4150 3850 2    50   ~ 0
+Button
+Wire Wire Line
+	4150 3850 4300 3850
+Wire Wire Line
+	3750 4050 4300 4050
+$Comp
+L power:GND #PWR?
+U 1 1 5B4FBCAD
+P 2350 5900
+F 0 "#PWR?" H 2350 5650 50  0001 C CNN
+F 1 "GND" H 2355 5727 50  0000 C CNN
+F 2 "" H 2350 5900 50  0001 C CNN
+F 3 "" H 2350 5900 50  0001 C CNN
+	1    2350 5900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2350 5900 2450 5900
+Text Label 3000 5900 0    50   ~ 0
+Button
+Wire Wire Line
+	3000 5900 2850 5900
+NoConn ~ 4300 2650
+NoConn ~ 4300 2750
+NoConn ~ 4300 2850
+NoConn ~ 4300 2950
+NoConn ~ 4300 3050
+NoConn ~ 4300 3250
+NoConn ~ 4300 3350
+NoConn ~ 4300 3450
+NoConn ~ 4300 3550
+NoConn ~ 4300 3650
+NoConn ~ 4300 3750
+NoConn ~ 4300 3950
+NoConn ~ 4300 4150
+NoConn ~ 4300 4250
+NoConn ~ 4300 4550
+NoConn ~ 4300 4650
+NoConn ~ 4300 4950
+NoConn ~ 4300 5050
+NoConn ~ 4300 5150
+NoConn ~ 6300 2550
+NoConn ~ 6300 2650
+NoConn ~ 6300 2750
+NoConn ~ 6300 2850
+NoConn ~ 6300 2950
+NoConn ~ 6300 3050
+NoConn ~ 6300 3150
+NoConn ~ 6300 3250
+NoConn ~ 6300 3350
+NoConn ~ 6300 3450
+NoConn ~ 6300 3550
+NoConn ~ 6300 3650
+NoConn ~ 6300 3750
+NoConn ~ 6300 3850
+NoConn ~ 6300 3950
+NoConn ~ 6300 4050
+NoConn ~ 6300 4150
+NoConn ~ 6300 4250
+NoConn ~ 6300 4350
+NoConn ~ 6300 4450
+NoConn ~ 6300 4550
+NoConn ~ 6300 4850
+NoConn ~ 6300 4950
+NoConn ~ 6300 5050
+NoConn ~ 6300 5150
+Text Label 4150 4350 2    50   ~ 0
+DebugDAC
+Wire Wire Line
+	4150 4350 4300 4350
+Text Label 4150 3150 2    50   ~ 0
+WS2812Data
+Wire Wire Line
+	4300 3150 4150 3150
+$EndSCHEMATC
