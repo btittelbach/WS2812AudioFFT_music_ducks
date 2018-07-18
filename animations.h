@@ -259,14 +259,16 @@ public:
 	        last_beat = beat;
 		}
 
-		const ledctr_t start_octave = 0;
-		const ledctr_t spectr_width = (NUM_OCTAVES-start_octave)*2-1; //8 + 7 in between = 15
+		const ledctr_t start_octave = 0; //0 is first octave. would be mainly DC offset if not for PJRC correction. set to 1 to ignore first octave, etc..
+		const ledctr_t spectr_width = (NUM_OCTAVES-start_octave)*2-1; //e.g. 8 + 7 in between = 15
 		const ledctr_t spectr_repetitions = NUM_LEDS / spectr_width;
 
+		//repeat same pattern over whole strip
 		for (ledctr_t repetition=0; repetition<spectr_repetitions; repetition++)
 		{
 			ledctr_t start_pos = spectr_width*repetition;
-			//paint octaves to every second pixel
+			//paint octaves to every second LED
+			//leaving one LED blank in between.
 			for (ledctr_t o=start_octave; o < NUM_OCTAVES; o++)
 			{
 				hsv2rgb_rainbow(
@@ -277,15 +279,15 @@ public:
 				);
 			}
 
-			//interpolate pixels in between
+			//interpolate color of LEDs in between (the one's we left free before)
 			for (ledctr_t o=start_octave; o < NUM_OCTAVES-1; o++)
 			{
 				ledctr_t pos_before = addmod8(start_pos+o*2,led_shift,NUM_LEDS);
-				ledctr_t pos_between = addmod8(pos_before+1,led_shift,NUM_LEDS);
-				ledctr_t pos_after   = addmod8(pos_before+2,led_shift,NUM_LEDS);
-				leds_[pos_between].r = (leds_[pos_before].r+leds_[pos_after].r) / 2;
-				leds_[pos_between].g = (leds_[pos_before].g+leds_[pos_after].g) / 2;
-				leds_[pos_between].b = (leds_[pos_before].b+leds_[pos_after].b) / 2;
+				ledctr_t pos_between = addmod8(pos_before,1,NUM_LEDS);
+				ledctr_t pos_after   = addmod8(pos_before,2,NUM_LEDS);
+				leds_[pos_between].r = (static_cast<uint16_t>(leds_[pos_before].r)+static_cast<uint16_t>(leds_[pos_after].r)) / 2;
+				leds_[pos_between].g = (static_cast<uint16_t>(leds_[pos_before].g)+static_cast<uint16_t>(leds_[pos_after].g)) / 2;
+				leds_[pos_between].b = (static_cast<uint16_t>(leds_[pos_before].b)+static_cast<uint16_t>(leds_[pos_after].b)) / 2;
 			}
 		}
 
