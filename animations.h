@@ -312,14 +312,13 @@ public:
 
 class AnimationGravityDots : public BaseAnimation {
 private:
-	uint8_t static const num_dots=7;
+	uint8_t static const num_dots=6;
 	CRGB dot_color[num_dots];
 	int8_t dot_pos[num_dots];
 	int8_t dot_speed[num_dots];
 
-	int8_t static const dot_gravity_factor = 2;
-	int8_t static const dot_gravity_limit = 4;
-	int8_t static const dot_max_speed = 5;
+	int8_t static const dot_gravity_limit = 3;
+	int8_t static const dot_max_speed = 2;
 	uint16_t zero_move_ticks_=0;
 
 public:
