@@ -50,22 +50,22 @@ public:
 
 class AnimationPlasma : public BaseAnimation {
 private:
-	ledctr_t steps=0;
+	uint8_t steps_=0;
 
 public:
 	virtual millis_t run()
 	{
 		
-		for (ledctr_t i=0;i<NUM_LEDS;i++)
+		for (uint8_t i=0;i<NUM_LEDS;i++)
 		{
 			uint16_t spani = (0x7f*(uint16_t)i)/(NUM_LEDS-1);
-			uint8_t s = quadwave8(add8(steps,mul8(spani,8)));
-			uint8_t u = quadwave8((-(steps<<1)-mul8(spani,3)+(quadwave8(spani<<1))));
+			uint8_t s = quadwave8(add8(steps_,mul8(spani,8)));
+			uint8_t u = quadwave8((-(steps_<<1)-mul8(spani,3)+(quadwave8(spani<<1))));
 			leds_[i].r=s;
 			leds_[i].g=u;
 			leds_[i].b=0;
 		}
-		steps++;
+		steps_++;
 		return 50;
 	}
 };
@@ -89,7 +89,7 @@ public:
 		}
 		hsv2rgb_rainbow(CHSV(hue,128,audiopower),leds_[0]);
 		hue++;
-		return 4;
+		return 10;
 	}
 };
 
