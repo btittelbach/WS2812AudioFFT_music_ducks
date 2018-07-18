@@ -1,6 +1,8 @@
 #ifndef ANIMATIONS_INCLUDE__H
 #define ANIMATIONS_INCLUDE__H
 
+#include <vector>
+
 typedef uint32_t ledctr_t;
 typedef unsigned long millis_t;
 
@@ -44,6 +46,40 @@ public:
 			return dark_animation->run();
 		else 
 			return light_animation->run();
+	}
+};
+
+
+// AutoSwitch Collection Decorator
+class AutoSwitchAnimationCollection : public BaseAnimation {
+private:
+	std::vector <BaseAnimation*> &autoswitch_list_;
+	std::vector <BaseAnimation*>::iterator curanim_;
+	millis_t switch_after_ms_;
+	millis_t next_switch_=0;
+
+public:
+	AutoSwitchAnimationCollection(millis_t switch_after_ms, std::vector<BaseAnimation*> &anim_list) : switch_after_ms_(switch_after_ms), autoswitch_list_(anim_list), curanim_(autoswitch_list_.begin()) {}
+
+	virtual void init()
+	{
+		(*curanim_)->init();
+	}
+
+	virtual millis_t run()
+	{
+		millis_t time=millis();
+		if (time > next_switch_)
+		{
+			curanim_++;
+			if (autoswitch_list_.end() == curanim_)
+			{
+				curanim_ = autoswitch_list_.begin();
+			}
+			(*curanim_)->init();
+			next_switch_ = time+switch_after_ms_;
+		}
+		return (*curanim_)->run();
 	}
 };
 
