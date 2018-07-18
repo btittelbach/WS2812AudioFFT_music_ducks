@@ -143,8 +143,8 @@ void setup() {
 	pinMode(PHOTORESISTOR_PIN, INPUT);
 	pinMode(MICROPHONE_AIN, INPUT);
 	//init animation
-	animations_list_[animation_current_]->init();
 	load_from_EEPROM();
+	animations_list_[animation_current_]->init();
 }
 
 void save_to_EEPROM()
