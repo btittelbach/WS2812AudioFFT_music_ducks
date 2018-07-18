@@ -13,7 +13,6 @@ public:
 	virtual void init()
 	{
 		fill_solid(leds_, NUM_LEDS, CRGB::Black);
-		last_max_peak_=0.01;
 		FastLED.setBrightness(80);
 	}
 
@@ -123,8 +122,7 @@ public:
 		if (!audioRMS.available() || !audioPeak.available())
 			return 2;
 		float rms = audioRMS.read(); //0.0 ... 1.0
-		uint8_t audiopower = static_cast<uint8_t>(rms/last_max_peak_*0xff);
-		last_max_peak_ = max(last_max_peak_,audioPeak.read());
+		uint8_t audiopower = static_cast<uint8_t>(rms*0xff);
 		//move pattern forwards
 		for (ledctr_t l=NUM_LEDS-1; l>0; l--)
 		{
@@ -185,14 +183,14 @@ public:
 
 void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 {
-	led_octaves_magnitude[0] = audioFFT.read(0) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[1] = audioFFT.read(1) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[2] = audioFFT.read(2,  3) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[3] = audioFFT.read(4,  7) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[4] = audioFFT.read(8,  16) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[5] = audioFFT.read(17,  32) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[6] = audioFFT.read(33, 64) /last_max_peak_ * 0xff;
-    led_octaves_magnitude[7] = audioFFT.read(65, 127) /last_max_peak_ * 0xff;
+	led_octaves_magnitude[0] = audioFFT.read(0) * 0xff;
+    led_octaves_magnitude[1] = audioFFT.read(1) * 0xff;
+    led_octaves_magnitude[2] = audioFFT.read(2,  3) * 0xff;
+    led_octaves_magnitude[3] = audioFFT.read(4,  7) * 0xff;
+    led_octaves_magnitude[4] = audioFFT.read(8,  16) * 0xff;
+    led_octaves_magnitude[5] = audioFFT.read(17,  32) * 0xff;
+    led_octaves_magnitude[6] = audioFFT.read(33, 64) * 0xff;
+    led_octaves_magnitude[7] = audioFFT.read(65, 127) * 0xff;
 }
 
 uint8_t get_fft_octaves_beat(uint8_t led_octaves_magnitude[NUM_OCTAVES])
@@ -230,7 +228,6 @@ public:
 		uint8_t led_octaves_magnitude[NUM_OCTAVES];
 		//calc octaves magnitude
 		fft_calc_octaves255(led_octaves_magnitude);
-		last_max_peak_ = max(last_max_peak_,audioPeak.read());
 		uint8_t beat = get_fft_octaves_beat(led_octaves_magnitude);
 
 		//set brightness depending on beat

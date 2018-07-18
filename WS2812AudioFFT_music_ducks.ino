@@ -67,7 +67,6 @@ AudioConnection          patchCord4(adc_stereo, 1, photoPeak, 0);
 
 CRGB leds_[NUM_LEDS];
 bool is_dark_=true;
-float last_max_peak_=0.01;
 int32_t dark_count_=0;
 uint16_t light_level=0;
 
