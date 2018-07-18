@@ -101,14 +101,15 @@ public:
 		for (uint8_t i=0;i<NUM_LEDS;i++)
 		{
 			uint16_t spani = (0x7f*(uint16_t)i)/(NUM_LEDS-1);
-			uint8_t s = quadwave8(add8(steps_,mul8(spani,8)));
-			uint8_t u = quadwave8((-(steps_<<1)-mul8(spani,3)+(quadwave8(spani<<1))));
+			uint8_t s = sin8(add8(steps_,mul8(spani,8)));
+			uint8_t u = sin8(-(steps_*2)-(spani*3)+sin8(i*2));
+			uint8_t v = max(0, 255-s-u); //sin((t+(t/2))+(i*5));
 			leds_[i].r=s;
 			leds_[i].g=u;
-			leds_[i].b=0;
+			leds_[i].b=v;
 		}
 		steps_++;
-		return 50;
+		return 1000/60;
 	}
 };
 
