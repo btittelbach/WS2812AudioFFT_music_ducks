@@ -98,28 +98,28 @@ AnimationFullFFT anim_fft_full_and_boring;
 AnimationPhotosensorDebugging anim_photoresistor_debugging;
 AnimationStripTest anim_strip_debugging;
 
-std::vector<BaseAnimation> animations_list_=
-	{anim_fft_octaves
-	,anim_fft_octaves_when_dark
-	,anim_rms_hue
-	,anim_rms_hue_when_dark
-	,anim_plasma
-	,anim_plasma_when_dark
-	,anim_gravity_dots
-	,anim_gravity_dots_when_dark
-	,anim_fireworks
-	,anim_fireworks_when_dark
-	,anim_fire2012
-	,anim_fire2012_when_dark
-	,anim_confetti
-	,anim_confetti_when_dark
-	,anim_rainbow
-	,anim_rainbow_when_dark
-	,anim_rainbow_w_glitter
-	,anim_rainbow_w_glitter_when_dark
-	,anim_fft_full_and_boring
-	,anim_photoresistor_debugging
-	,anim_strip_debugging
+std::&vector<BaseAnimation*> animations_list_=
+	{&anim_fft_octaves
+	,&anim_fft_octaves_when_dark
+	,&anim_rms_hue
+	,&anim_rms_hue_when_dark
+	,&anim_plasma
+	,&anim_plasma_when_dark
+	,&anim_gravity_dots
+	,&anim_gravity_dots_when_dark
+	,&anim_fireworks
+	,&anim_fireworks_when_dark
+	,&anim_fire2012
+	,&anim_fire2012_when_dark
+	,&anim_confetti
+	,&anim_confetti_when_dark
+	,&anim_rainbow
+	,&anim_rainbow_when_dark
+	,&anim_rainbow_w_glitter
+	,&anim_rainbow_w_glitter_when_dark
+	,&anim_fft_full_and_boring
+	,&anim_photoresistor_debugging
+	,&anim_strip_debugging
 	};
 
 uint8_t animation_current_= 1;
@@ -139,7 +139,7 @@ void setup() {
 	pinMode(PHOTORESISTOR_PIN, INPUT);
 	pinMode(MICROPHONE_AIN, INPUT);
 	//init animation
-	animations_list_[animation_current_].init();
+	animations_list_[animation_current_]->init();
 	load_from_EEPROM();
 }
 
@@ -207,7 +207,7 @@ void task_animate_leds()
 		return;
 
 	//run current animation
-	millis_t delay_ms = animations_list_[animation_current_].run();
+	millis_t delay_ms = animations_list_[animation_current_]->run();
 
 	// Show the leds (only one of which is set to white, from above)
 	FastLED.show();
@@ -219,7 +219,7 @@ void animation_switch_next()
 	animation_current_++;
 	animation_current_%=NUM_ANIM;
 	save_to_EEPROM();
-	animations_list_[animation_current_].init();
+	animations_list_[animation_current_]->init();
 }
 
 void task_check_button()
