@@ -476,6 +476,42 @@ public:
 	}
 };
 
+//(c) FastLED
+class AnimationRMSConfetti : public BaseAnimation {
+private:
+	uint8_t cur_hue_ = 0;
+	uint8_t ctr_ = 0;
+	float threshold_;
+
+public:
+
+	AnimationRMSConfetti(float threshold=0.05) : threshold_(threshold) {}
+
+	virtual millis_t run()
+	{
+		fadeToBlackBy( leds_, NUM_LEDS, 10);
+		if (audioPeak.available())
+		{
+			float peak = audioPeak.read();
+			if (peak > threshold_)
+			{
+				//one for sure
+				int pos = random16(NUM_LEDS);
+				leds_[pos] += CHSV( cur_hue_ + static_cast<uint8_t>(peak*128), 200, 255);
+				//maybe more
+				for (uint8_t p=0; p<static_cast<uint8_t>(peak*4); p++)
+				{
+					pos = random16(NUM_LEDS);
+					leds_[pos] += CHSV( cur_hue_ + static_cast<uint8_t>(peak*128), 200, 255);
+				}
+			}
+		}
+		if (ctr_++ % 4 == 0)
+			cur_hue_++;
+		return 1000/60;
+	}
+};
+
 
 class AnimationRainbowGlitter : public BaseAnimation {
 private:
