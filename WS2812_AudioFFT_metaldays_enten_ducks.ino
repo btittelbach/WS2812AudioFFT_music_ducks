@@ -240,13 +240,12 @@ void task_check_button()
 
 void task_heartbeat()
 {
-	static bool hbled=false;
-	digitalWrite(LED_PIN,(hbled)?HIGH:LOW);
-	hbled = !hbled;
+	static uint8_t hbled=0;
+	digitalWrite(LED_PIN,(hbled % 16 == 0)?HIGH:LOW);
+	hbled++;
 }
 
 void loop() {
-   // Move a single white led_
    task_heartbeat();
    task_check_button();
    task_check_lightlevel();
