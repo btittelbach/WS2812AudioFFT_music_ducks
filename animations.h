@@ -183,14 +183,15 @@ public:
 
 void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 {
-	led_octaves_magnitude[0] = audioFFT.read(0) * 0xff;
-    led_octaves_magnitude[1] = audioFFT.read(1) * 0xff;
-    led_octaves_magnitude[2] = audioFFT.read(2,  3) * 0xff;
-    led_octaves_magnitude[3] = audioFFT.read(4,  7) * 0xff;
-    led_octaves_magnitude[4] = audioFFT.read(8,  16) * 0xff;
-    led_octaves_magnitude[5] = audioFFT.read(17,  32) * 0xff;
-    led_octaves_magnitude[6] = audioFFT.read(33, 64) * 0xff;
-    led_octaves_magnitude[7] = audioFFT.read(65, 127) * 0xff;
+	const float gain = 1.8;
+	led_octaves_magnitude[0] = min(1.0,gain*audioFFT.read(0)) * 0xff;
+    led_octaves_magnitude[1] = min(1.0,gain*audioFFT.read(1)) * 0xff;
+    led_octaves_magnitude[2] = min(1.0,gain*audioFFT.read(2,  3)) * 0xff;
+    led_octaves_magnitude[3] = min(1.0,gain*audioFFT.read(4,  7)) * 0xff;
+    led_octaves_magnitude[4] = min(1.0,gain*audioFFT.read(8,  16)) * 0xff;
+    led_octaves_magnitude[5] = min(1.0,gain*audioFFT.read(17,  32)) * 0xff;
+    led_octaves_magnitude[6] = min(1.0,gain*audioFFT.read(33, 64)) * 0xff;
+    led_octaves_magnitude[7] = min(1.0,gain*audioFFT.read(65, 127)) * 0xff;
 }
 
 uint8_t get_fft_octaves_beat(uint8_t led_octaves_magnitude[NUM_OCTAVES])
@@ -253,9 +254,9 @@ public:
 			for (ledctr_t o=start_octave; o < NUM_OCTAVES; o++)
 			{
 				hsv2rgb_rainbow(
-					CHSV(led_octaves_magnitude[o] + repetition*30,
-						constrain(led_octaves_magnitude[o]+30, 0,0xff),
-						led_octaves_magnitude[o])
+					CHSV(led_octaves_magnitude[o] + repetition*30,		//H
+						blend8(150,0xff,led_octaves_magnitude[o]),	//S
+						led_octaves_magnitude[o])						//V
 					,leds_[addmod8(start_pos+o*2,led_shift,NUM_LEDS)]
 				);
 			}
