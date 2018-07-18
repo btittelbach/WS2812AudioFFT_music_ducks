@@ -8,6 +8,19 @@
 #include <SerialFlash.h>
 #include <vector>
 
+namespace std {
+  void __throw_bad_alloc()
+  {
+    Serial.println("Unable to allocate memory");
+  }
+
+  void __throw_length_error( char const*e )
+  {
+    Serial.print("Length Error :");
+    Serial.println(e);
+  }
+}
+
 ///// Requirements:
 /// * newest FastLED from GitHub (master branch > 3.1.6)
 /// * PJRC Audio (included in Teensyduino)
@@ -96,8 +109,9 @@ RunOnlyInDarkness anim_rainbow_w_glitter_when_dark(anim_rainbow_w_glitter, anim_
 std::vector<BaseAnimation*> collection_of_nice_animations1 = {&anim_plasma,&anim_fireworks,&anim_rainbow_w_glitter,&anim_confetti,&anim_fire2012};
 AutoSwitchAnimationCollection anim_collection_switcher1(1000*60*1,collection_of_nice_animations1);
 RunOnlyInDarkness anim_darkness_auto_collection1(anim_collection_switcher1, anim_fade_to_black);
-// std::vector<BaseAnimation*> collection_of_audio_animations2 = {&anim_rms_confetti,&anim_fft_octaves,&anim_rms_hue};
-// AutoSwitchAnimationCollection anim_collection_switcher2(1000*60*1,collection_of_audio_animations2);
+std::vector<BaseAnimation*> collection_of_audio_animations2 = {&anim_rms_confetti,&anim_fft_octaves,&anim_rms_hue};
+AutoSwitchAnimationCollection anim_collection_switcher2(1000*60*2,collection_of_audio_animations2);
+RunOnlyInDarkness anim_darkness_auto_collection2(anim_collection_switcher2, anim_fade_to_black);
 
 AnimationFullFFT anim_fft_full_and_boring;
 AnimationPhotosensorDebugging anim_photoresistor_debugging;
@@ -128,7 +142,7 @@ std::vector<BaseAnimation*> animations_list_=
 	,&anim_photoresistor_debugging
 	,&anim_strip_debugging
 	,&anim_darkness_auto_collection1
-	// ,&anim_collection_switcher2
+	,&anim_darkness_auto_collection2
 	};
 
 uint8_t animation_current_= 1;
