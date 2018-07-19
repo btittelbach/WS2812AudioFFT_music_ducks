@@ -114,6 +114,10 @@ RunOnlyInDarkness anim_rainbow_w_glitter_when_dark(anim_rainbow_w_glitter, anim_
 AnimationFullFFT anim_fft_full_and_boring;
 AnimationPhotosensorDebugging anim_photoresistor_debugging;
 AnimationStripTest anim_strip_debugging;
+AnimationCampingLight anim_camping_light;
+RunOnlyInDarkness anim_camping_light_when_dark(anim_camping_light, anim_fade_to_black);
+AnimationJustMaximumLight anim_maximum_light;
+RunOnlyInDarkness anim_maximum_light_when_dark(anim_maximum_light, anim_fade_to_black);
 std::vector<BaseAnimation*> collection_of_nice_animations1 =
 	{&anim_plasma,&anim_fireworks
 	,&anim_rainbow_w_glitter
@@ -153,7 +157,9 @@ std::vector<BaseAnimation*> animations_list_=
 	,&anim_photoresistor_debugging
 	,&anim_strip_debugging
 	,&anim_darkness_auto_collection1
+	,&anim_camping_light_when_dark
 	,&anim_darkness_auto_collection2
+	,&anim_maximum_light_when_dark
 	};
 
 uint8_t animation_current_= 1;
