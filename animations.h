@@ -101,6 +101,78 @@ public:
 	}
 };
 
+class AnimationCampingLight : public BaseAnimation {
+private:
+	uint8_t brightness_drift_=0;
+	ledctr_t black_pos_=0;
+	ledctr_t black_size_=1;
+	ledctr_t blend_size_=4;
+public:
+	virtual void init()
+	{
+		BaseAnimation::init();
+		FastLED.setBrightness(blend8(180,250,quadwave8(brightness_drift_)));
+	}
+
+	virtual millis_t run()
+	{
+		if (0 == black_pos_ % 10)
+		{
+			brightness_drift_++;
+			FastLED.setBrightness(blend8(190,250,quadwave8(brightness_drift_)));
+		}
+
+		//all white
+		fill_solid(leds_,NUM_LEDS,CRGB::White);
+
+		if (black_size_ > 0)
+		{
+			//black start
+			uint8_t brightness = 0xff * (black_pos_ % blend_size_);
+			leds_[black_pos_ / blend_size_] = CRGB(brightness,brightness,brightness);
+
+			//black inbetween
+			for (ledctr_t bl=(black_pos_/blend_size_)+1; bl<(black_pos_/blend_size_)+black_size_-1; ++bl)
+			{
+				leds_[bl]=CRGB::Black;
+			}
+
+			//black end
+			leds_[black_pos_ / blend_size_+black_size_] = CRGB(0xff-brightness,0xff-brightness,0xff-brightness);
+		}
+
+		black_pos_++;
+		black_pos_%= NUM_LEDS*blend_size_;
+
+		//start a new random black size
+		if (0 == black_pos_)
+		{
+			black_size_=random8(0,6);
+		}
+
+		return 900;
+	}
+};
+
+class AnimationJustMaximumLight : public BaseAnimation {
+private:
+	uint8_t brightness_drift_=0;
+	ledctr_t black_pos_=0;
+	ledctr_t black_size_=1;
+	ledctr_t blend_size_=4;
+public:
+	virtual void init()
+	{
+		BaseAnimation::init();
+		FastLED.setBrightness(255);
+		fill_solid(leds_,NUM_LEDS,CRGB::White);
+	}
+
+	virtual millis_t run()
+	{
+		return 1000;
+	}
+};
 
 class AnimationPlasma : public BaseAnimation {
 private:
