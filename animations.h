@@ -494,6 +494,15 @@ public:
 	}
 };
 
+uint32_t ledGetColorCode(CRGB &l)
+{
+	return (
+		static_cast<uint32_t>(l.raw[0])
+		| static_cast<uint32_t>(l.raw[1]) << 8
+		| static_cast<uint32_t>(l.raw[2]) << 16
+			);
+}
+
 class AnimationFireworks : public BaseAnimation {
 public:
 	virtual millis_t run()
@@ -507,9 +516,9 @@ public:
 		// set brightness(i) = ((brightness(i-1)/4 + brightness(i+1)) / 4) + brightness(i)
 		for (ledctr_t i=0 + 1; i <NUM_LEDS; i++)
 		{
-			prevLed = (*reinterpret_cast<uint32_t*>(leds_[i-1].raw) >> 2) & 0x3F3F3F3F;
-			thisLed = *reinterpret_cast<uint32_t*>(leds_[i].raw);
-			nextLed = (*reinterpret_cast<uint32_t*>(leds_[i+1].raw) >> 2) & 0x3F3F3F3F;
+			prevLed = (ledGetColorCode(leds_[i-1]) >> 2) & 0x3F3F3F3F;
+			thisLed = ledGetColorCode(leds_[i]);
+			nextLed = (ledGetColorCode(leds_[i+1]) >> 2) & 0x3F3F3F3F;
 			leds_[i] = CRGB(prevLed + thisLed + nextLed);
 		}
 
