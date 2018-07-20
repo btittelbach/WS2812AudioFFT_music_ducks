@@ -103,23 +103,25 @@ public:
 
 class AnimationCampingLight : public BaseAnimation {
 private:
+	static const uint8_t brightness_lower = 150;
+	static const uint8_t brightness_upper = 210;
 	uint8_t brightness_drift_=0;
 	ledctr_t black_pos_=0;
-	ledctr_t black_size_=1;
-	ledctr_t blend_size_=4;
+	ledctr_t black_size_=2;
+	ledctr_t blend_size_=64; //>= 1
 public:
 	virtual void init()
 	{
 		BaseAnimation::init();
-		FastLED.setBrightness(blend8(180,250,quadwave8(brightness_drift_)));
+		FastLED.setBrightness(blend8(brightness_lower,brightness_upper,quadwave8(brightness_drift_)));
 	}
 
 	virtual millis_t run()
 	{
-		if (0 == black_pos_ % 10)
+		if (0 == black_pos_ % blend_size_*3)
 		{
 			brightness_drift_++;
-			FastLED.setBrightness(blend8(190,250,quadwave8(brightness_drift_)));
+			FastLED.setBrightness(blend8(brightness_lower,brightness_upper,quadwave8(brightness_drift_)));
 		}
 
 		//all white
@@ -128,17 +130,22 @@ public:
 		if (black_size_ > 0)
 		{
 			//black start
-			uint8_t brightness = 0xff * (black_pos_ % blend_size_);
+			uint8_t sin_brightness = 0x80/(blend_size_-1) * (black_pos_ % blend_size_);
+			uint8_t brightness = quadwave8(sin_brightness);
 			leds_[black_pos_ / blend_size_] = CRGB(brightness,brightness,brightness);
 
 			//black inbetween
-			for (ledctr_t bl=(black_pos_/blend_size_)+1; bl<(black_pos_/blend_size_)+black_size_-1; ++bl)
+			for (ledctr_t bl=(black_pos_/blend_size_)+1; bl<min((black_pos_/blend_size_)+black_size_,NUM_LEDS); ++bl)
 			{
-				leds_[bl]=CRGB::Black;
+ 				leds_[bl]=CRGB::Black;
 			}
 
 			//black end
-			leds_[black_pos_ / blend_size_+black_size_] = CRGB(0xff-brightness,0xff-brightness,0xff-brightness);
+			if (black_pos_ / blend_size_+black_size_ < NUM_LEDS)
+			{
+				brightness = quadwave8(sin_brightness+0x7f);
+				leds_[black_pos_ / blend_size_+black_size_] = CRGB(brightness,brightness,brightness);
+			}
 		}
 
 		black_pos_++;
@@ -147,10 +154,10 @@ public:
 		//start a new random black size
 		if (0 == black_pos_)
 		{
-			black_size_=random8(0,6);
+			black_size_=random8(0,11);
 		}
 
-		return 900;
+		return 1000/30;
 	}
 };
 
