@@ -103,12 +103,12 @@ AnimationFireworks anim_fireworks;
 RunOnlyInDarkness anim_fireworks_when_dark(anim_fireworks, anim_fade_to_black);
 AnimationFire2012 anim_fire2012;
 RunOnlyInDarkness anim_fire2012_when_dark(anim_fire2012, anim_fade_to_black);
+AnimationRainbowGlitter anim_rainbow(false);
+RunOnlyInDarkness anim_rainbow_when_dark(anim_rainbow, anim_fade_to_black);
 AnimationConfetti anim_confetti;
 RunOnlyInDarkness anim_confetti_when_dark(anim_confetti, anim_fade_to_black);
 AnimationRMSConfetti anim_rms_confetti;
 RunOnlyInDarkness anim_rms_confetti_when_dark(anim_rms_confetti, anim_fade_to_black);
-AnimationRainbowGlitter anim_rainbow(false);
-RunOnlyInDarkness anim_rainbow_when_dark(anim_rainbow, anim_fade_to_black);
 AnimationRainbowGlitter anim_rainbow_w_glitter(true);
 RunOnlyInDarkness anim_rainbow_w_glitter_when_dark(anim_rainbow_w_glitter, anim_fade_to_black);
 AnimationFullFFT anim_fft_full_and_boring;
@@ -147,10 +147,10 @@ std::vector<BaseAnimation*> animations_list_=
 	,&anim_fireworks_when_dark
 	,&anim_fire2012
 	,&anim_fire2012_when_dark
-	,&anim_confetti
-	,&anim_confetti_when_dark
 	,&anim_rainbow
 	,&anim_rainbow_when_dark
+	,&anim_confetti
+	,&anim_confetti_when_dark
 	,&anim_rainbow_w_glitter
 	,&anim_rainbow_w_glitter_when_dark
 	,&anim_fft_full_and_boring

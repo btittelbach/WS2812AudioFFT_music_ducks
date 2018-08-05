@@ -695,10 +695,10 @@ private:
 		fill_rainbow( leds_, NUM_LEDS, cur_hue_, 7);
 	}
 
-	void addGlitter( fract8 chanceOfGlitter)
+	void addGlitter( uint8_t chanceOfGlitter)
 	{
 		if( random8() < chanceOfGlitter) {
-			leds_[ random16(NUM_LEDS) ] += CRGB::White;
+			leds_[ random16(NUM_LEDS) ] = CRGB::White;
 		}
 	}
 
@@ -720,7 +720,7 @@ public:
 		if (with_glitter_)
 			addGlitter(80);
 		cur_hue_++;
-		return 1000/60;
+		return 1000/50;
 	}
 };
 
