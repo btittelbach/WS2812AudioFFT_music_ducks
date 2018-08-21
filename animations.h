@@ -282,13 +282,13 @@ public:
 void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 {
 	const float gain = 1.8;
-	led_octaves_magnitude[0] = min(1.0,gain*audioFFT.read(0)) * 0xff;
-    led_octaves_magnitude[1] = min(1.0,gain*audioFFT.read(1)) * 0xff;
-    led_octaves_magnitude[2] = min(1.0,gain*audioFFT.read(2,  3)) * 0xff;
-    led_octaves_magnitude[3] = min(1.0,gain*audioFFT.read(4,  7)) * 0xff;
-    led_octaves_magnitude[4] = min(1.0,gain*audioFFT.read(8,  16)) * 0xff;
-    led_octaves_magnitude[5] = min(1.0,gain*audioFFT.read(17,  32)) * 0xff;
-    led_octaves_magnitude[6] = min(1.0,gain*audioFFT.read(33, 64)) * 0xff;
+    led_octaves_magnitude[0] = min(1.0,gain*audioFFT.read(1)) * 0xff;
+    led_octaves_magnitude[1] = min(1.0,gain*audioFFT.read(2)) * 0xff;
+    led_octaves_magnitude[2] = min(1.0,gain*audioFFT.read(3,  4)) * 0xff;
+    led_octaves_magnitude[3] = min(1.0,gain*audioFFT.read(5,  8)) * 0xff;
+    led_octaves_magnitude[4] = min(1.0,gain*audioFFT.read(9,  17)) * 0xff;
+    led_octaves_magnitude[5] = min(1.0,gain*audioFFT.read(18, 35)) * 0xff;
+    led_octaves_magnitude[6] = min(1.0,gain*audioFFT.read(36, 64)) * 0xff;
     led_octaves_magnitude[7] = min(1.0,gain*audioFFT.read(65, 127)) * 0xff;
 }
 
