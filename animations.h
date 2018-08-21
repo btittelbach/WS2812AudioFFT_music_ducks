@@ -46,6 +46,7 @@ public:
 
 	virtual void init()
 	{
+		last_dark = is_dark_;
 		if (is_dark_)
 			return dark_animation->init();
 		else
@@ -56,8 +57,7 @@ public:
 	{
 		if (last_dark != is_dark_)
 		{
-			last_dark = is_dark_;
-			init();
+			this->init();
 		}
 
 		if (is_dark_)
@@ -697,13 +697,14 @@ private:
 
 	void addGlitter( uint8_t chanceOfGlitter)
 	{
-		if( random8() < chanceOfGlitter) {
+		if (random8() < chanceOfGlitter)
+		{
 			leds_[ random16(NUM_LEDS) ] = CRGB::White;
 		}
 	}
 
 public:
-	AnimationRainbowGlitter(bool with_glitter=true) : with_glitter_(with_glitter) {}
+	AnimationRainbowGlitter(bool with_glitter=true) : with_glitter_(with_glitter), cur_hue_(0) {}
 
 	virtual void init()
 	{
@@ -717,9 +718,11 @@ public:
 	virtual millis_t run()
 	{
 		rainbow();
-		if (with_glitter_)
-			addGlitter(80);
 		cur_hue_++;
+		if (with_glitter_)
+		{
+			addGlitter(80);
+		}
 		return 1000/50;
 	}
 };
