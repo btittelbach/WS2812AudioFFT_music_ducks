@@ -1,15 +1,16 @@
 //(c) Bernhard Tittelbach, xro@realraum.at, 2018
 //MIT license, except where code from other projects was borrowed and other licenses might apply
 
-#include <WS2812Serial.h>
 #define USE_WS2812SERIAL
-#include <FastLED.h>
-#include <Audio.h>
 #include <Wire.h>
+#include <EEPROM.h>
 #include <SPI.h>
 #include <SD.h>
-#include <SerialFlash.h>
 #include <vector>
+#include <WS2812Serial.h>
+#include <Audio.h>
+#include <Snooze.h>
+#include <FastLED.h>
 
 namespace std {
   void __throw_bad_alloc()
@@ -34,17 +35,16 @@ namespace std {
 ///
 
 // Data pin that led data will be written out over
-#define WS2812_PIN 5
-
+#define MICROPHONE_AIN A2
+#define PHOTORESISTOR_AIN A3
+// #define PHOTORESISTOR_USE_ADC
 #define BUTTON_PIN 12
+
+#define WS2812_PIN 5
 
 #define LED_PIN 13
 
-#define MICROPHONE_AIN A2
-
-#define PHOTORESISTOR_AIN A3
 #define PHOTORESISTOR_PIN 17
-//#define PHOTORESISTOR_USE_ADC
 
 #define NUM_LEDS 150
 #define BUTTON_DEBOUNCE  500
@@ -54,7 +54,6 @@ namespace std {
 #define EEPROM_CURRENT_VERSION 0
 #define EEPROM_ADDR_VERS 0
 #define EEPROM_ADDR_CURANIM 1
-
 
 // GUItool: begin automatically generated code
 #ifdef PHOTORESISTOR_USE_ADC
@@ -83,20 +82,34 @@ AudioConnection          patchCord4(adc_stereo, 1, photoPeak, 0);
 
 #define FFT_SIZE 256
 
+
 CRGB leds_[NUM_LEDS];
 bool is_dark_=true;
 int32_t dark_count_=0;
 uint16_t light_level=0;
 
+//// define Sleep Config
+
+SnoozeTimer sleep_timer_;
+SnoozeDigital sleep_digital_;
+SnoozeBlock sleep_config_(sleep_timer_,sleep_digital_);
+
+//// define Animations
+#define USE_PJRC_AUDIO 1
 #include "animations.h"
 
-AnimationBlack anim_fade_to_black;
+AnimationBlackSleepTeensy anim_fade_to_black(sleep_config_);
 AnimationPlasma anim_plasma;
 RunOnlyInDarkness anim_plasma_when_dark(anim_plasma, anim_fade_to_black);
+#ifdef USE_PJRC_AUDIO
 AnimationRMSHue anim_rms_hue;
-RunOnlyInDarkness anim_rms_hue_when_dark(anim_rms_hue, anim_fade_to_black);
+AnimationRMSConfetti anim_rms_confetti;
+RunOnlyInDarkness anim_rms_confetti_when_dark(anim_rms_confetti, anim_fade_to_black);
+AnimationFullFFT anim_fft_full_and_boring;
 AnimationFFTOctaves anim_fft_octaves;
 RunOnlyInDarkness anim_fft_octaves_when_dark(anim_fft_octaves, anim_fade_to_black);
+RunOnlyInDarkness anim_rms_hue_when_dark(anim_rms_hue, anim_fade_to_black);
+#endif
 AnimationGravityDots anim_gravity_dots;
 RunOnlyInDarkness anim_gravity_dots_when_dark(anim_gravity_dots, anim_fade_to_black);
 AnimationFireworks anim_fireworks;
@@ -107,11 +120,8 @@ AnimationRainbowGlitter anim_rainbow(false);
 RunOnlyInDarkness anim_rainbow_when_dark(anim_rainbow, anim_fade_to_black);
 AnimationConfetti anim_confetti;
 RunOnlyInDarkness anim_confetti_when_dark(anim_confetti, anim_fade_to_black);
-AnimationRMSConfetti anim_rms_confetti;
-RunOnlyInDarkness anim_rms_confetti_when_dark(anim_rms_confetti, anim_fade_to_black);
 AnimationRainbowGlitter anim_rainbow_w_glitter(true);
 RunOnlyInDarkness anim_rainbow_w_glitter_when_dark(anim_rainbow_w_glitter, anim_fade_to_black);
-AnimationFullFFT anim_fft_full_and_boring;
 AnimationPhotosensorDebugging anim_photoresistor_debugging;
 AnimationStripTest anim_strip_debugging;
 AnimationCampingLight anim_camping_light;
@@ -125,21 +135,27 @@ std::vector<BaseAnimation*> collection_of_nice_animations1 =
 	};
 AutoSwitchAnimationCollection anim_collection_switcher1(1000*60*1,collection_of_nice_animations1);
 RunOnlyInDarkness anim_darkness_auto_collection1(anim_collection_switcher1, anim_fade_to_black);
+#ifdef USE_PJRC_AUDIO
 std::vector<BaseAnimation*> collection_of_audio_animations2 =
 	{&anim_rms_confetti
 	,&anim_fft_octaves
 	,&anim_rms_hue};
 AutoSwitchAnimationCollection anim_collection_switcher2(1000*60*2,collection_of_audio_animations2);
 RunOnlyInDarkness anim_darkness_auto_collection2(anim_collection_switcher2, anim_fade_to_black);
+#endif
 
 std::vector<BaseAnimation*> animations_list_=
-	{&anim_fft_octaves
+	{
+#ifdef USE_PJRC_AUDIO
+	 &anim_fft_octaves
 	,&anim_fft_octaves_when_dark
 	,&anim_rms_hue
 	,&anim_rms_hue_when_dark
 	,&anim_rms_confetti
 	,&anim_rms_confetti_when_dark
-	,&anim_plasma
+	,
+#endif
+	&anim_plasma
 	,&anim_plasma_when_dark
 	,&anim_gravity_dots
 	,&anim_gravity_dots_when_dark
@@ -153,12 +169,16 @@ std::vector<BaseAnimation*> animations_list_=
 	,&anim_confetti_when_dark
 	,&anim_rainbow_w_glitter
 	,&anim_rainbow_w_glitter_when_dark
+#ifdef USE_PJRC_AUDIO
 	,&anim_fft_full_and_boring
+#endif
 	,&anim_photoresistor_debugging
 	,&anim_strip_debugging
 	,&anim_darkness_auto_collection1
 	,&anim_camping_light_when_dark
+#ifdef USE_PJRC_AUDIO
 	,&anim_darkness_auto_collection2
+#endif
 	,&anim_maximum_light_when_dark
 	};
 
@@ -168,8 +188,10 @@ uint8_t animation_current_= 1;
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
+#ifdef USE_PJRC_AUDIO
 	AudioMemory(12);
 	delay(2000);
+#endif
 
 	FastLED.addLeds<WS2812SERIAL,WS2812_PIN,GRB>(leds_,NUM_LEDS);
 	pinMode(LED_PIN,OUTPUT);
@@ -178,6 +200,11 @@ void setup() {
 	pinMode(PHOTORESISTOR_AIN, INPUT);
 	pinMode(PHOTORESISTOR_PIN, INPUT);
 	pinMode(MICROPHONE_AIN, INPUT);
+
+	//set sleep parameters
+	sleep_timer_.setTimer(25*1000); // check for light every 25s
+	sleep_digital_.pinMode(BUTTON_PIN, INPUT_PULLUP, FALLING); //pin, mode, type
+
 	//init animation
 	load_from_EEPROM();
 	animations_list_[animation_current_]->init();
@@ -185,29 +212,31 @@ void setup() {
 
 void save_to_EEPROM()
 {
-  if (eeprom_read_byte((const uint8_t*)EEPROM_ADDR_VERS) != EEPROM_CURRENT_VERSION)
-    eeprom_write_byte((uint8_t *) EEPROM_ADDR_VERS, EEPROM_CURRENT_VERSION);
-  if (animation_current_ != eeprom_read_byte((const uint8_t*)EEPROM_ADDR_CURANIM))
-    eeprom_write_byte((uint8_t *) EEPROM_ADDR_CURANIM, animation_current_);
+  if (EEPROM.read(EEPROM_ADDR_VERS) != EEPROM_CURRENT_VERSION)
+    EEPROM.write(EEPROM_ADDR_VERS, EEPROM_CURRENT_VERSION);
+  if (animation_current_ != EEPROM.read(EEPROM_ADDR_CURANIM))
+    EEPROM.write(EEPROM_ADDR_CURANIM, animation_current_);
 }
 
 void load_from_EEPROM()
 {
-  if (eeprom_read_byte(EEPROM_ADDR_VERS) != EEPROM_CURRENT_VERSION)
+  if (EEPROM.read(EEPROM_ADDR_VERS) != EEPROM_CURRENT_VERSION)
     return;
 
-  animation_current_ = eeprom_read_byte((const uint8_t*)EEPROM_ADDR_CURANIM) % NUM_ANIM;
+  animation_current_ = EEPROM.read(EEPROM_ADDR_CURANIM) % NUM_ANIM;
 }
 
 
 void task_check_lightlevel()
 {
 #ifdef PHOTORESISTOR_USE_ADC
+#ifdef USE_PJRC_AUDIO
 	if (!photoPeak.available())
 		return;
-
-	// uint16_t light_level = analogReadADC1(PHOTORESISTOR_AIN);
 	light_level = photoPeak.read()*4095;
+#else
+	light_level = analogReadADC1(PHOTORESISTOR_AIN);
+#endif
 	if (light_level > LIGHT_THRESHOLD)
 #else
 	if (digitalRead(PHOTORESISTOR_PIN) == LOW)
@@ -234,8 +263,11 @@ void task_check_lightlevel()
 
 inline void task_sample_mic()
 {
+#ifdef USE_PJRC_AUDIO
 	//done by PJRC Audio
-
+#else
+	//TODO
+#endif
 }
 
 void task_animate_leds()

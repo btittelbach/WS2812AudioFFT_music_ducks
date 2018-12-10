@@ -10,6 +10,17 @@
 typedef uint32_t ledctr_t;
 typedef unsigned long millis_t;
 
+bool areAllPixelsBlack(void)
+{
+	uint32_t pxsum = 0;
+	for (ledctr_t l=0; l< NUM_LEDS; l++)
+	{
+		pxsum += leds_[l].r;
+		pxsum += leds_[l].g;
+		pxsum += leds_[l].b;
+	}
+	return (pxsum == 0);
+}
 
 class BaseAnimation
 {
@@ -34,6 +45,64 @@ public:
 		return 200;
 	}
 };
+
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+class AnimationBlackSleepESP8266 : public BaseAnimation {
+private:
+	uint32_t sleep_duration_s_;
+
+public:
+	AnimationBlackSleepESP8266(uint32_t sleep_duration_s=10) : sleep_duration_s_(sleep_duration_s) {}
+
+	virtual millis_t run()
+	{
+		CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(20);
+		if (areAllPixelsBlack()) //fadeout finished
+		{
+			#ifdef LED_PIN
+			digitalWrite(LED_PIN,LOW);
+			#endif
+			ESP.deepSleep(sleep_duration_s_ * 1000000);
+		}
+		return 100;
+	}
+};
+#endif
+
+#if defined(TEENSYDUINO) && defined(Snooze_h) && !defined(__AVR_ATmega32U4__)
+///
+/// // example use:
+/// #include <Snooze.h>
+/// #include <animations.h> //animations after Snooze
+/// SnoozeTimer timer;
+/// SnoozeDigital digital;
+/// timer.setTimer(5000);// milliseconds
+/// digital.pinMode(21, INPUT_PULLUP, RISING);//pin, mode, type
+/// digital.pinMode(22, INPUT_PULLUP, RISING);//pin, mode, type
+/// SnoozeBlock sleep_config(sleep_timer_,sleep_digital_)
+/// AnimationBlackSleepTeensy anim_hibernate(sleep_config)
+///
+class AnimationBlackSleepTeensy : public BaseAnimation {
+private:
+	SnoozeBlock sleep_config_;
+
+public:
+	AnimationBlackSleepTeensy(SnoozeBlock &sleep_config) : sleep_config_(sleep_config) {}
+
+	virtual millis_t run()
+	{
+		CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(20);
+		if (areAllPixelsBlack()) //fadeout finished
+		{
+			#ifdef LED_PIN
+			digitalWrite(LED_PIN,LOW);
+			#endif
+			Snooze.hibernate(sleep_config_);
+		}
+		return 100;
+	}
+};
+#endif
 
 // onlyInDarkness Decorator
 class RunOnlyInDarkness : public BaseAnimation {
@@ -243,28 +312,6 @@ public:
 	}
 };
 
-class AnimationRMSHue : public BaseAnimation {
-private:
-	uint8_t hue=0;
-
-public:
-	virtual millis_t run()
-	{
-		if (!audioRMS.available() || !audioPeak.available())
-			return 2;
-		float rms = audioRMS.read(); //0.0 ... 1.0
-		uint8_t audiopower = static_cast<uint8_t>(rms*0xff);
-		//move pattern forwards
-		for (ledctr_t l=NUM_LEDS-1; l>0; l--)
-		{
-			leds_[l]=leds_[l-1];
-		}
-		hsv2rgb_rainbow(CHSV(hue,128,audiopower),leds_[0]);
-		hue++;
-		return 10;
-	}
-};
-
 class AnimationPhotosensorDebugging : public BaseAnimation {
 public:
 	virtual millis_t run()
@@ -310,8 +357,34 @@ public:
 	}
 };
 
+#ifdef USE_PJRC_AUDIO
+class AnimationRMSHue : public BaseAnimation {
+private:
+	uint8_t hue=0;
+
+public:
+	virtual millis_t run()
+	{
+		if (!audioRMS.available() || !audioPeak.available())
+			return 2;
+		float rms = audioRMS.read(); //0.0 ... 1.0
+		uint8_t audiopower = static_cast<uint8_t>(rms*0xff);
+		//move pattern forwards
+		for (ledctr_t l=NUM_LEDS-1; l>0; l--)
+		{
+			leds_[l]=leds_[l-1];
+		}
+		hsv2rgb_rainbow(CHSV(hue,128,audiopower),leds_[0]);
+		hue++;
+		return 10;
+	}
+};
+#endif
+
+
 #define NUM_OCTAVES  8 //log2(256)
 
+#ifdef USE_PJRC_AUDIO
 void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 {
 	const float gain = 1.8;
@@ -324,6 +397,12 @@ void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
     led_octaves_magnitude[6] = min(1.0,gain*audioFFT.read(36, 64)) * 0xff;
     led_octaves_magnitude[7] = min(1.0,gain*audioFFT.read(65, 127)) * 0xff;
 }
+#else
+void fft_calc_octaves255(uint8_t led_octaves_magnitude[NUM_OCTAVES])
+{
+	//TODO
+}
+#endif
 
 uint8_t get_fft_octaves_beat(uint8_t led_octaves_magnitude[NUM_OCTAVES])
 {
@@ -355,9 +434,10 @@ public:
 	virtual millis_t run()
 	{
 		const millis_t default_delay=10;
-
+#ifdef USE_PJRC_AUDIO
 		if (!audioFFT.available() || !audioPeak.available())
 			return 2;
+#endif
 		uint8_t led_octaves_magnitude[NUM_OCTAVES];
 		//calc octaves magnitude
 		fft_calc_octaves255(led_octaves_magnitude);
@@ -420,6 +500,7 @@ public:
 	}
 };
 
+#ifdef USE_PJRC_AUDIO
 class AnimationFullFFT : public BaseAnimation {
 public:
 	virtual void init()
@@ -441,6 +522,7 @@ public:
 		return 10; //1ms max delay
 	}
 };
+#endif
 
 class AnimationGravityDots : public BaseAnimation {
 private:
@@ -680,6 +762,7 @@ public:
 	}
 };
 
+#ifdef USE_PJRC_AUDIO
 //(c) FastLED
 class AnimationRMSConfetti : public BaseAnimation {
 private:
@@ -715,7 +798,7 @@ public:
 		return 1000/60;
 	}
 };
-
+#endif
 
 class AnimationRainbowGlitter : public BaseAnimation {
 private:
@@ -759,11 +842,6 @@ public:
 		return 1000/50;
 	}
 };
-
-
-// ledctr_t middle = oct*ledwith_octave + (ledwith_octave/2);
-// ledctr_t width = fht_oct_out[oct] * ledwith_octave / (1<<(sizeof(int16_t)-1));
-// uint8_t value = fht_oct_out[oct] * ledwith_octave / (1<<(sizeof(int16_t)-1));
 
 
 #endif //ANIMATIONS_INCLUDE__H
