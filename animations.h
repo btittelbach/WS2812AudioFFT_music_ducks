@@ -851,4 +851,53 @@ public:
 };
 
 
+class AnimationTOCFairyDustFire : public BaseAnimation
+{
+public:
+	const uint led_ring_rings = 9;
+	const uint led_ring_sizes[9] = {1,8,12,16,24,32,40,48,60};
+	const uint led_num = 241;
+	const uint8_t fairydust_sparking = 60;
+	uint8_t centric_heatwave_phase = 0;
+
+	virtual void init()
+	{
+		BaseAnimation::init();
+		FastLED.setBrightness(32);
+		//assert(NUM_LEDS == led_num);
+	}
+
+	virtual millis_t run()
+	{
+		//decrease heat with each ring (low freq sin)
+		//have heatwave propage from outside to insdie (high freq sin)
+		//vary heat inside each ring with sinus
+		//have inside-ring-sinus drift with phase
+
+		centric_heatwave_phase++;
+
+		ledctr_t first_led_in_rings=0;
+		uint8_t spiral_heat_phase = 0;
+		for (uint8_t c=0;c<led_ring_rings;c++)
+		{
+			uint8_t ring_base_heat = quadwave8(64 + 64/(led_ring_rings-c)) + quadwave8(64 + 64/led_ring_rings*c*3 + centric_heatwave_phase)/4;
+
+			for (ledctr_t l=0; l < led_ring_sizes[c]; l++)
+			{
+				uint8_t heat = ring_base_heat - 256/16 + quadwave8(64 + 256/led_ring_sizes[c]*l + spiral_heat_phase) / 8;
+
+			    if( random8() < fairydust_sparking ) {
+					heat = qadd8( heat, random8(160,255) );
+			    }
+
+				leds_[first_led_in_rings + l] = HeatColor( heat );
+			}
+			first_led_in_rings += led_ring_sizes[c];
+			spiral_heat_phase++;
+		}
+		return 100;
+	}
+};
+
+
 #endif //ANIMATIONS_INCLUDE__H
