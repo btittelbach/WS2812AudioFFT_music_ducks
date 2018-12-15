@@ -7,6 +7,13 @@
 
 #include <vector>
 
+#ifndef min
+#define min(a,b) ((a)<(b)?(a):(b))
+#endif
+#ifndef max
+#define max(a,b) ((a)>(b)?(a):(b))
+#endif
+
 typedef uint32_t ledctr_t;
 typedef unsigned long millis_t;
 
