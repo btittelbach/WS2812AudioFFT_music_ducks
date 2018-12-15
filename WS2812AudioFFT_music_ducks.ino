@@ -318,9 +318,9 @@ void task_check_button()
 
 void task_heartbeat()
 {
-	static uint8_t hbled=0;
-	digitalWrite(LED_PIN,(hbled % 16 == 0)?HIGH:LOW);
-	hbled++;
+	static uint16_t hbled=0;
+	digitalWrite(LED_PIN,(hbled & 1<<12 )?HIGH:LOW);
+	hbled = ++hbled & (1<<13);
 }
 
 void loop() {
