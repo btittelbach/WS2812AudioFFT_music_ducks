@@ -161,6 +161,39 @@ public:
 	}
 };
 
+class AnimationBreatheLight : public BaseAnimation {
+private:
+	static const uint8_t brightness_lower = 0;
+	static const uint8_t brightness_upper = 210;
+	uint16_t brightness_drift_=0;
+public:
+	virtual void init()
+	{
+		BaseAnimation::init();
+		FastLED.setBrightness(blend8(brightness_lower,brightness_upper,quadwave8(brightness_drift_)));
+	}
+
+	virtual millis_t run()
+	{
+		if (brightness_drift_ < 0x100)
+		{
+			FastLED.setBrightness(blend8(brightness_lower,brightness_upper,quadwave8(static_cast<uint8_t>(brightness_drift_))));
+			brightness_drift_++;
+		} else if (brightness_drift_ > 0x300)
+		{
+			brightness_drift_=0;
+		} else
+		{
+			brightness_drift_++;
+		}
+
+		//all white
+		fill_solid(leds_,NUM_LEDS,CRGB::White);
+
+		return 1000/80;
+	}
+};
+
 class AnimationJustMaximumLight : public BaseAnimation {
 private:
 	uint8_t brightness_drift_=0;
