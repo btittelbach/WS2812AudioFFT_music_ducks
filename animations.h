@@ -851,20 +851,31 @@ public:
 };
 
 
-class AnimationTOCFairyDustFire : public BaseAnimation
-{
-public:
-	const uint led_ring_rings = 9;
-	const uint led_ring_sizes[9] = {1,8,12,16,24,32,40,48,60};
-	const uint led_num = 241;
-	const uint8_t fairydust_sparking = 60;
+class AnimationTOCFairyDustFire : public BaseAnimation {
+private:
+	uint8_t led_ring_rings = 6;
+	const ledctr_t led_ring_sizes[9] = {1,8,12,16,24,32,48,60};
+	ledctr_t last_led = 241;
+	uint8_t fairydust_sparking = 60;
 	uint8_t centric_heatwave_phase = 0;
+  uint32_t mainheatplume_step = 0;
 
+public:
+  AnimationTOCFairyDustFire(uint8_t num_rings=6):led_ring_rings(num_rings)
+  {
+    last_led=0;
+    for (uint8_t c=0; c<num_rings; c++)
+    {
+      last_led+=led_ring_sizes[c];
+    }
+    last_led-=1;
+  }
+  
 	virtual void init()
 	{
 		BaseAnimation::init();
-		FastLED.setBrightness(32);
-		//assert(NUM_LEDS == led_num);
+		FastLED.setBrightness(64);
+		//assert(NUM_LEDS == last_led);
 	}
 
 	virtual millis_t run()
@@ -873,31 +884,63 @@ public:
 		//have heatwave propage from outside to insdie (high freq sin)
 		//vary heat inside each ring with sinus
 		//have inside-ring-sinus drift with phase
+		const float tau=2*3.1416;
+
+		// float mainheatplume_amplitude = 8;  // /¯\________/¯\________
+		// float mainheatplume_width = 0;      //  __/¯\________/¯\______
+		const float mainheatplume_amplitude_min = 8;
+		const float mainheatplume_width_min = 0.2;
+		const float mainheatplume_amplitude_max = 32;
+		const float mainheatplume_width_max = 2.0;
+		const float mainheatplume_amplitude_phase = 0.0;
+		const float mainheatplume_width_phase = tau/2;
+		const uint32_t mainheatplume_substeps=100;
+		const float mainheatplume_step_size = tau/static_cast<float>(mainheatplume_substeps);
+		const uint32_t mainheatplume_step_max = 5*mainheatplume_substeps;
+		const float mainheatplume_amplitude_t_max = tau/2+mainheatplume_amplitude_phase;
+		const float mainheatplume_width_t_max = tau/2+mainheatplume_width_phase;
+
+		float t = mainheatplume_step_size * mainheatplume_step;
+		mainheatplume_step++;
+		mainheatplume_step%=mainheatplume_step_max;
+
+		float mainheatplume_amplitude = mainheatplume_amplitude_min + (mainheatplume_amplitude_max-mainheatplume_amplitude_min)*max(0.0,sin(min(mainheatplume_amplitude_t_max, t) + mainheatplume_amplitude_phase));
+		float mainheatplume_width = mainheatplume_width_min + (mainheatplume_width_max-mainheatplume_width_min)*max(0.0,sin(min(mainheatplume_width_t_max, t)+ mainheatplume_width_phase));
+
+		const uint16_t overlay_freq_multiplier = 5;
+		const uint16_t overlay_amplitude_divider = 8;
 
 		centric_heatwave_phase++;
 
 		ledctr_t first_led_in_rings=0;
 		uint8_t spiral_heat_phase = 0;
-		for (uint8_t c=0;c<led_ring_rings;c++)
+		for (uint8_t c=0;c<led_ring_rings; c++)
 		{
-			uint8_t ring_base_heat = quadwave8(64 + 64/(led_ring_rings-c)) + quadwave8(64 + 64/led_ring_rings*c*3 + centric_heatwave_phase)/4;
+			float ring_base_heat_float = mainheatplume_amplitude * sin(tau/4 + ((tau/4/mainheatplume_width)/led_ring_rings)*c);
+			uint8_t ring_base_heat = (uint8_t)(64.0 + ring_base_heat_float);
+			//uint8_t ring_base_heat = (uint16_t)quadwave8(64 + (64-mainheatplume_width)/led_ring_rings*c)*mainheatplume_amplitude/16;
+      //uint8_t ring_base_heat = qadd8(qsub8((uint16_t)quadwave8(64 + (64-mainheatplume_width)/led_ring_rings*c)*mainheatplume_amplitude/16,256/overlay_amplitude_divider/2),quadwave8(64 + 64/led_ring_rings*c*overlay_freq_multiplier + centric_heatwave_phase)/overlay_amplitude_divider);
 
 			for (ledctr_t l=0; l < led_ring_sizes[c]; l++)
 			{
-				uint8_t heat = ring_base_heat - 256/16 + quadwave8(64 + 256/led_ring_sizes[c]*l + spiral_heat_phase) / 8;
+				uint8_t heat = ring_base_heat;
+			//	uint8_t heat = qsub8(ring_base_heat,256/overlay_amplitude_divider/2) + quadwave8(64 + 256/led_ring_sizes[c]*l + spiral_heat_phase) / overlay_amplitude_divider;
 
-			    if( random8() < fairydust_sparking ) {
-					heat = qadd8( heat, random8(160,255) );
-			    }
+			//    if( random8() < fairydust_sparking )
+			//    {
+			//		  heat = qadd8( heat, random8(160,255) );
+			//    }
 
-				leds_[first_led_in_rings + l] = HeatColor( heat );
-			}
+				leds_[last_led - (first_led_in_rings + l)] = HeatColor( heat );
+		  }
+			//leds_[ last_led - first_led_in_rings ] = HeatColor( ring_base_heat   );
 			first_led_in_rings += led_ring_sizes[c];
 			spiral_heat_phase++;
 		}
-		return 100;
+		return 1000/20;
 	}
 };
 
 
 #endif //ANIMATIONS_INCLUDE__H
+
