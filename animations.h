@@ -46,6 +46,10 @@ public:
 
 class AnimationBlack : public BaseAnimation {
 public:
+	virtual void init()
+	{
+	}
+
 	virtual millis_t run()
 	{
 		CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(20);
@@ -53,7 +57,10 @@ public:
 	}
 };
 
+
+
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+//// Puts the ESP8266 into Light Sleep Mode
 class AnimationBlackSleepESP8266 : public BaseAnimation {
 private:
 	uint32_t sleep_duration_s_;
@@ -61,15 +68,26 @@ private:
 public:
 	AnimationBlackSleepESP8266(uint32_t sleep_duration_s=10) : sleep_duration_s_(sleep_duration_s) {}
 
+	virtual void init()
+	{
+	}
+
 	virtual millis_t run()
 	{
-		CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(20);
 		if (areAllPixelsBlack()) //fadeout finished
 		{
 			#ifdef LED_PIN
 			digitalWrite(LED_PIN,LOW);
 			#endif
-			ESP.deepSleep(sleep_duration_s_ * 1000000);
+		    WiFi.disconnect();
+		    WiFi.mode(WIFI_OFF);
+		    wifi_set_sleep_type(LIGHT_SLEEP_T);
+		    wifi_fpm_open();
+		    wifi_fpm_do_sleep(sleep_duration_s_*1000000);
+		    delay(sleep_duration_s_*1000);
+		    // leds_[0] = CRGB::Red;
+		} else {
+			CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(20);
 		}
 		return 100;
 	}
