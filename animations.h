@@ -880,16 +880,18 @@ public:
 };
 
 
-void paintFireRing(ledctr_t led_start, ledctr_t led_num, uint8_t fire_intensity)
+void paintFireRing(ledctr_t led_start, ledctr_t led_end, uint8_t fire_intensity, CRGB fire_color=CRGB(80,35,0))
 {
-  const CRGB fire_color_ = CRGB(80,35,0);
-  for( ledctr_t i = led_start; i < led_num; i++)
+  for( ledctr_t i = led_start; i < led_end; i++)
   {
     //blend into fire color
-    leds_[i] = blend(leds_[i],fire_color_,128);
+    leds_[i] = blend(leds_[i], fire_color, 128);
     uint8_t r = random8(fire_intensity);
     //substract random color CRGB(r,r/2,r/2)
-    leds_[i] -= CRGB(r,r/2,r/2);
+    // leds_[i] -= CRGB(r,r/2,r/2);
+    leds_[i].r = qsub8(leds_[i].r,r);
+    leds_[i].g = qsub8(leds_[i].g,r/2);
+    leds_[i].b = qsub8(leds_[i].b,r/2);
   }
 }
 
@@ -909,93 +911,12 @@ public:
   virtual millis_t run()
   {
     uint8_t fire_intensity = 64;
-    paintFireRing(NUM_LEDS/2,NUM_LEDS, 64);
+    paintFireRing(0, NUM_LEDS/3*1, 180);
     if (0 == ctr % 2)
-      paintFireRing(0,NUM_LEDS/2, 180);
+      paintFireRing(NUM_LEDS/3*1, NUM_LEDS/3*2, 128);
+    if (0 == ctr % 3)
+      paintFireRing(NUM_LEDS/3*2, NUM_LEDS, 64);
     ctr++;
-      return 1000/20;
-  }
-};
-
-
-class AnimationTOCFairyDustFire2 : public BaseAnimation {
-private:
-  uint8_t led_ring_rings = 6;
-  const ledctr_t led_ring_sizes[9] = {1,8,12,16,24,32,48,60};
-  ledctr_t last_led = 241;
-  uint8_t fairydust_sparking = 60;
-  uint8_t centric_heatwave_phase = 0;
-  uint32_t mainheatplume_step = 0;
-
-public:
-  AnimationTOCFairyDustFire2(uint8_t num_rings=6):led_ring_rings(num_rings)
-  {
-    last_led=0;
-    for (uint8_t c=0; c<num_rings; c++)
-    {
-      last_led+=led_ring_sizes[c];
-    }
-    last_led-=1;
-  }
-
-  virtual void init()
-  {
-    BaseAnimation::init();
-    FastLED.setBrightness(64);
-    //assert(NUM_LEDS == last_led);
-  }
-
-  virtual millis_t run()
-  {
-    //decrease heat with each ring (low freq sin)
-    //have heatwave propage from outside to insdie (high freq sin)
-    //vary heat inside each ring with sinus
-    //have inside-ring-sinus drift with phase
-    const float tau=2*3.1416;
-
-    // float mainheatplume_amplitude = 8;  // /¯\________/¯\________
-    // float mainheatplume_width = 0;      //  __/¯\________/¯\______
-    const float mainheatplume_amplitude_min = 50;
-    const float mainheatplume_width_min = 0.2;
-    const float mainheatplume_amplitude_max = 250;
-    const float mainheatplume_width_max = 3.0;
-    const float mainheatplume_amplitude_phase = 0.0;
-    const float mainheatplume_width_phase = tau/2;
-    const uint32_t mainheatplume_substeps=100;
-    const float mainheatplume_step_size = tau/static_cast<float>(mainheatplume_substeps);
-    const uint32_t mainheatplume_step_max = 5*mainheatplume_substeps;
-    const float mainheatplume_amplitude_t_max = tau/2+mainheatplume_amplitude_phase;
-    const float mainheatplume_width_t_max = tau/2+mainheatplume_width_phase;
-
-    float t = mainheatplume_step_size * mainheatplume_step;
-    mainheatplume_step++;
-    mainheatplume_step%=mainheatplume_step_max;
-
-    float mainheatplume_amplitude = mainheatplume_amplitude_min + (mainheatplume_amplitude_max-mainheatplume_amplitude_min)*max(0.0,sin(min(mainheatplume_amplitude_t_max, t) + mainheatplume_amplitude_phase));
-    float mainheatplume_width = mainheatplume_width_min + (mainheatplume_width_max-mainheatplume_width_min)*max(0.0,sin(min(mainheatplume_width_t_max, t)+ mainheatplume_width_phase));
-
-    const uint16_t overlay_freq_multiplier = 5;
-    const uint16_t overlay_amplitude_divider = 8;
-
-    centric_heatwave_phase++;
-
-    ledctr_t first_led_in_rings=0;
-    uint8_t spiral_heat_phase = 0;
-    for (uint8_t c=0;c<led_ring_rings; c++)
-    {
-      float ring_base_heat_float = mainheatplume_amplitude * sin(tau/4 + ((tau/4/mainheatplume_width)/led_ring_rings)*c);
-      uint8_t ring_base_heat = (uint8_t)(ring_base_heat_float);
-      //uint8_t ring_base_heat = (uint16_t)quadwave8(64 + (64-mainheatplume_width)/led_ring_rings*c)*mainheatplume_amplitude/16;
-      //uint8_t ring_base_heat = qadd8(qsub8((uint16_t)quadwave8(64 + (64-mainheatplume_width)/led_ring_rings*c)*mainheatplume_amplitude/16,256/overlay_amplitude_divider/2),quadwave8(64 + 64/led_ring_rings*c*overlay_freq_multiplier + centric_heatwave_phase)/overlay_amplitude_divider);
-
-      if (c < led_ring_rings/2 || centric_heatwave_phase %2 == 0)
-      {
-        paintFireRing(last_led - (first_led_in_rings + led_ring_sizes[c]), last_led - first_led_in_rings, ring_base_heat);
-      }
-
-      first_led_in_rings += led_ring_sizes[c];
-      spiral_heat_phase++;
-    }
     return 1000/20;
   }
 };
@@ -1063,106 +984,41 @@ public:
 class AnimationTOCFairyDustFire : public BaseAnimation {
 private:
   uint8_t led_ring_rings_ = 7;
-  // const ledctr_t led_ring_sizes[8] = {1,8,12,16,24,32,48,60};
   const ledctr_t led_ring_sizes[7] = {1,8,12,16,24,32,27};
-  ledctr_t last_led = 241+27;
+  // const ledctr_t led_ring_sizes[8] = {1,8,12,16,24,32,48,60};
   uint8_t fairydust_sparking = 60;
   uint8_t centric_heatwave_phase = 0;
-  uint16_t mainheatplume_step = 0;
+  uint16_t step_ = 0;
 
 public:
   AnimationTOCFairyDustFire(uint8_t num_rings=7):led_ring_rings_(num_rings)
-  {
-    last_led=0;
-    for (uint8_t c=0; c<num_rings; c++)
-    {
-      last_led+=led_ring_sizes[c];
-    }
-    last_led-=1;
-  }
+  {}
   
   virtual void init()
   {
     BaseAnimation::init();
-    FastLED.setBrightness(64);
+    FastLED.setBrightness(80);
   }
 
   virtual millis_t run()
   {
-    fill_solid(leds_, NUM_LEDS, CRGB::Black);
+    // fill_solid(leds_, NUM_LEDS, CRGB::Black);  
     ledctr_t first_led_in_rings=0;
-    for (uint8_t c=0;c<mainheatplume_step % (led_ring_rings_+1); c++)
+    for (uint8_t ring=0; ring<led_ring_rings_; ring++)
     {
-      for (ledctr_t l=0; l < led_ring_sizes[c]; l++)
-      {
-        leds_[first_led_in_rings + l] = CRGB::Red;
-      }
-      //leds_[ last_led - first_led_in_rings ] = HeatColor( ring_base_heat   );
-      first_led_in_rings += led_ring_sizes[c];
-      // spiral_heat_phase++;
+      //uint8_t heat = 0xFF/(led_ring_rings_)*(led_ring_rings_-ring);
+      // uint8_t heat = triwave8(add8((64/(led_ring_rings_-1))*ring,64));
+      // uint8_t heat = quadwave8((step_/8)+led_ring_rings_-ring);
+      uint8_t heat = static_cast<uint16_t>(cubicwave8(2*(led_ring_rings_-1-ring)+static_cast<uint8_t>(step_/7)))*8/10;
+      CRGB colour = HeatColor(max(heat,8));
+      //CPixelView<CRGB>(leds_,first_led_in_rings, first_led_in_rings+led_ring_sizes[ring]).fill_solid(colour);
+      paintFireRing(first_led_in_rings, first_led_in_rings+led_ring_sizes[ring], 5+160/(led_ring_rings_)*(led_ring_rings_-ring), colour);
+      first_led_in_rings += led_ring_sizes[ring];
     }
-    mainheatplume_step++;
-    return 1000/5;
-/*
-    //decrease heat with each ring (low freq sin)
-    //have heatwave propage from outside to insdie (high freq sin)
-    //vary heat inside each ring with sinus
-    //have inside-ring-sinus drift with phase
-    const float tau=2*3.1416;
-
-    // float mainheatplume_amplitude = 8;  // /¯\________/¯\________
-    // float mainheatplume_width = 0;      //  __/¯\________/¯\______
-    const float mainheatplume_amplitude_min = 40;
-    const float mainheatplume_width_min = 0.2;
-    const float mainheatplume_amplitude_max = 0xF0;
-    const float mainheatplume_width_max = 2.5;
-    const float mainheatplume_amplitude_phase = tau/4;
-    const float mainheatplume_width_phase = 0;
-    const uint16_t mainheatplume_substeps=200;
-    const float mainheatplume_step_size = tau/static_cast<float>(mainheatplume_substeps);
-    const uint16_t mainheatplume_step_max = 2*mainheatplume_substeps;
-    const float mainheatplume_amplitude_t_max = tau/4+mainheatplume_amplitude_phase;
-    const float mainheatplume_width_t_max = tau/4+mainheatplume_width_phase;
-
-    float t = mainheatplume_step_size * static_cast<float>(mainheatplume_step);
-    mainheatplume_step++;
-    mainheatplume_step%=mainheatplume_step_max;
-
-    float mainheatplume_amplitude = mainheatplume_amplitude_min + (mainheatplume_amplitude_max-mainheatplume_amplitude_min)*max(0.0,sin(min(mainheatplume_amplitude_t_max, t) + mainheatplume_amplitude_phase));
-    float mainheatplume_width = mainheatplume_width_min + (mainheatplume_width_max-mainheatplume_width_min)*max(0.0,sin(min(mainheatplume_width_t_max, t)+ mainheatplume_width_phase));
-
-    const uint16_t overlay_freq_multiplier = 5;
-    const uint16_t overlay_amplitude_divider = 8;
-
-    // centric_heatwave_phase++;
-
-    ledctr_t first_led_in_rings=0;
-    // uint8_t spiral_heat_phase = 0;
-    for (uint8_t c=0;c<led_ring_rings_; c++)
-    {
-      float ring_base_heat_float = mainheatplume_amplitude * sin(tau/4 + ((tau/4/mainheatplume_width)/led_ring_rings_)*c);
-      uint8_t ring_base_heat = static_cast<uint8_t>(max(0xff,min(0,ring_base_heat_float)));
-      //uint8_t ring_base_heat = (uint16_t)quadwave8(64 + (64-mainheatplume_width)/led_ring_rings_*c)*mainheatplume_amplitude/16;
-      //uint8_t ring_base_heat = qadd8(qsub8((uint16_t)quadwave8(64 + (64-mainheatplume_width)/led_ring_rings_*c)*mainheatplume_amplitude/16,256/overlay_amplitude_divider/2),quadwave8(64 + 64/led_ring_rings_*c*overlay_freq_multiplier + centric_heatwave_phase)/overlay_amplitude_divider);
-
-      for (ledctr_t l=0; l < led_ring_sizes[c]; l++)
-      {
-        uint8_t heat = ring_base_heat;
-      //  uint8_t heat = qsub8(ring_base_heat,256/overlay_amplitude_divider/2) + quadwave8(64 + 256/led_ring_sizes[c]*l + spiral_heat_phase) / overlay_amplitude_divider;
-
-      //    if( random8() < fairydust_sparking )
-      //    {
-      //      heat = qadd8( heat, random8(160,255) );
-      //    }
-
-        leds_[first_led_in_rings + l] = HeatColor( heat );
-      }
-      //leds_[ last_led - first_led_in_rings ] = HeatColor( ring_base_heat   );
-      first_led_in_rings += led_ring_sizes[c];
-      // spiral_heat_phase++;
-    }
-    return 1000/10;
-    */
+    step_++;
+    // uint8_t st = static_cast<uint16_t>(triwave8(static_cast<uint8_t>(step_/8)))*NUM_LEDS/255;
+    // leds_[st]=CRGB::Blue;
+    return 1000/15;
   }
 };
 
