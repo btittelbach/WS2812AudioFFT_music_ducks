@@ -4,7 +4,9 @@
 //(c) Bernhard Tittelbach, xro@realraum.at, 2018
 //MIT license, except where code from other projects was borrowed and other licenses might apply
 
-
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#include "gpio.h"
+#endif
 #include <vector>
 
 #ifndef min
@@ -63,10 +65,10 @@ public:
 //// Puts the ESP8266 into Light Sleep Mode
 class AnimationBlackSleepESP8266 : public BaseAnimation {
 private:
-	uint32_t sleep_duration_s_;
+	uint32_t wakup_pin_;
 
 public:
-	AnimationBlackSleepESP8266(uint32_t sleep_duration_s=10) : sleep_duration_s_(sleep_duration_s) {}
+	AnimationBlackSleepESP8266(uint32_t wakup_pin) : wakup_pin_(wakup_pin) {}
 
 	virtual void init()
 	{
@@ -79,17 +81,19 @@ public:
 			#ifdef LED_PIN
 			digitalWrite(LED_PIN,LOW);
 			#endif
-		    WiFi.disconnect();
-		    WiFi.mode(WIFI_OFF);
 		    wifi_set_sleep_type(LIGHT_SLEEP_T);
+		    wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+			gpio_pin_wakeup_enable(GPIO_ID_PIN(wakup_pin_), GPIO_PIN_INTR_LOLEVEL);
 		    wifi_fpm_open();
-		    wifi_fpm_do_sleep(sleep_duration_s_*1000000);
-		    delay(sleep_duration_s_*1000);
-		    // leds_[0] = CRGB::Red;
+		    wifi_fpm_do_sleep(0xFFFFFFF); //only 0xFFFFFFF works
+		    delay(100);
+		    gpio_pin_wakeup_disable();
+		    //delay(sleep_duration_s_*1000);
+		    leds_[0] = CRGB::Red; //indicate wakeup. you have time to push button until red has faded out
 		} else {
 			CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(20);
 		}
-		return 100;
+		return 90;
 	}
 };
 #endif
