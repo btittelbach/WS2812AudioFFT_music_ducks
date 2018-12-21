@@ -998,14 +998,15 @@ public:
 class AnimationTOCFairyDustFire : public BaseAnimation {
 private:
 	uint8_t led_ring_rings = 6;
-	const ledctr_t led_ring_sizes[9] = {1,8,12,16,24,32,48,60};
-	ledctr_t last_led = 241;
+	// const ledctr_t led_ring_sizes[9] = {1,8,12,16,24,32,48,60};
+	const ledctr_t led_ring_sizes[9] = {1,8,12,16,24,32,27,48,60};
+	ledctr_t last_led = 241+27;
 	uint8_t fairydust_sparking = 60;
 	uint8_t centric_heatwave_phase = 0;
   uint32_t mainheatplume_step = 0;
 
 public:
-  AnimationTOCFairyDustFire(uint8_t num_rings=6):led_ring_rings(num_rings)
+  AnimationTOCFairyDustFire(uint8_t num_rings=7):led_ring_rings(num_rings)
   {
     last_led=0;
     for (uint8_t c=0; c<num_rings; c++)
@@ -1075,7 +1076,7 @@ public:
 			//		  heat = qadd8( heat, random8(160,255) );
 			//    }
 
-				leds_[last_led - (first_led_in_rings + l)] = HeatColor( heat );
+				leds_[first_led_in_rings + l] = HeatColor( heat );
 		  }
 			//leds_[ last_led - first_led_in_rings ] = HeatColor( ring_base_heat   );
 			first_led_in_rings += led_ring_sizes[c];
