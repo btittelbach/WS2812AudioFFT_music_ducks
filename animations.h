@@ -994,6 +994,64 @@ public:
 };
 
 
+class AnimationTOCFairyDustLandingRing : public BaseAnimation {
+private:
+  uint8_t led_ring_rings_ = 7;
+  const ledctr_t led_ring_sizes[7] = {1,8,12,16,24,32,27};
+  CRGB ring_colour_list_[7+1];
+  uint8_t step_ = 0;
+  const uint8_t chance_of_color = 40;
+  const uint8_t blend_steps = 4;
+
+public:
+  AnimationTOCFairyDustLandingRing(uint8_t num_rings=7) : led_ring_rings_(num_rings)
+  {
+    for (uint8_t c=0; c<led_ring_rings_+1; c++)
+    {
+      ring_colour_list_[c]=CRGB::Black;
+    }
+  }
+
+  virtual void init()
+  {
+    BaseAnimation::init();
+    FastLED.setBrightness(80);
+  }
+
+  virtual millis_t run()
+  {
+    if (step_ % blend_steps == 0)
+    {
+      //shift arry
+      for (uint8_t c=0; c<led_ring_rings_; c++)
+      {
+        ring_colour_list_[c]=ring_colour_list_[c+1];
+      }
+
+      //new outer color
+      if (random8() < chance_of_color)
+      {
+        hsv2rgb_rainbow(CHSV(random8(),0xff,127+random8(128)),ring_colour_list_[led_ring_rings_]);
+      } else {
+        ring_colour_list_[led_ring_rings_] = CRGB::Black;
+      }
+    }
+
+    //Draw and Blend
+    ledctr_t first_led_in_rings=0;
+    for (uint8_t c=0; c<led_ring_rings_; c++)
+    {
+      CRGB blended = blend(ring_colour_list_[c],ring_colour_list_[c+1],0xFF/blend_steps * (step_%blend_steps));
+      CPixelView<CRGB>(leds_,first_led_in_rings, first_led_in_rings+led_ring_sizes[c]).fill_solid(blended);
+      first_led_in_rings += led_ring_sizes[c];
+    }
+    step_++;
+    return 1000/20;
+  }
+};
+
+
+
 
 class AnimationTOCFairyDustFire : public BaseAnimation {
 private:
