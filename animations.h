@@ -93,7 +93,7 @@ public:
     } else {
       CPixelView<CRGB>(leds_,0,NUM_LEDS).fadeToBlackBy(20);
     }
-    return 90;
+    return 60;
   }
 };
 #endif
