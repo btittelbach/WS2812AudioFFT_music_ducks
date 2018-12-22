@@ -199,6 +199,36 @@ public:
   }
 };
 
+
+class AnimationBatteryIndicator : public BaseAnimation {
+private:
+  uint8_t battery_byte_=0;
+  ledctr_t working_ctr_=0;
+
+public:
+
+  void setBatteryChargeLevel0to255(uint8_t battery_byte)
+  {
+    battery_byte_ = battery_byte;
+  }
+
+  virtual millis_t run()
+  {
+    fill_solid(leds_, NUM_LEDS, CRGB::Black);
+    FastLED.setBrightness(16);
+    ledctr_t after_full = NUM_LEDS/4;
+    ledctr_t charge = after_full * static_cast<ledctr_t>(battery_byte_) / 0xff;
+    leds_[after_full] = CRGB::Green;
+    CRGB charge_color = CRGB(0xff-battery_byte_,battery_byte_,0);
+    CPixelView<CRGB>(leds_,0, charge).fill_gradient_RGB(0,charge,CRGB::Red,charge_color);
+    leds_[working_ctr_] = blend(leds_[working_ctr_], CRGB::Yellow, 64);
+    working_ctr_++;
+    working_ctr_%=after_full;
+    return 300;
+  }
+};
+
+
 class AnimationCampingLight : public BaseAnimation {
 private:
   static const uint8_t brightness_lower = 150;
