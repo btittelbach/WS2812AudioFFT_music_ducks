@@ -204,27 +204,40 @@ class AnimationBatteryIndicator : public BaseAnimation {
 private:
   uint8_t battery_byte_=0;
   ledctr_t working_ctr_=0;
+  const ledctr_t blendsteps_=4;
+  const ledctr_t after_full = NUM_LEDS/5;
+  CRGB darkyellow;
 
 public:
+  AnimationBatteryIndicator()
+  {
+    hsv2rgb_rainbow(CHSV(64,255,128),darkyellow);
+  }
 
   void setBatteryChargeLevel0to255(uint8_t battery_byte)
   {
     battery_byte_ = battery_byte;
   }
 
-  virtual millis_t run()
+  virtual void init()
   {
     fill_solid(leds_, NUM_LEDS, CRGB::Black);
-    FastLED.setBrightness(16);
-    ledctr_t after_full = NUM_LEDS/4;
+    FastLED.setBrightness(8);
+  }
+
+  virtual millis_t run()
+  {
     ledctr_t charge = after_full * static_cast<ledctr_t>(battery_byte_) / 0xff;
+    CPixelView<CRGB>(leds_, charge, after_full-1).fill_solid(CRGB::Black);
     leds_[after_full] = CRGB::Green;
     CRGB charge_color = CRGB(0xff-battery_byte_,battery_byte_,0);
-    CPixelView<CRGB>(leds_,0, charge).fill_gradient_RGB(0,charge,CRGB::Red,charge_color);
-    leds_[working_ctr_] = blend(leds_[working_ctr_], CRGB::Yellow, 64);
+    CPixelView<CRGB>(leds_,0, charge).fill_gradient_RGB(CRGB::Red,charge_color);
+    ledctr_t wipos = working_ctr_/blendsteps_;
+    leds_[wipos] = blend(leds_[wipos], darkyellow, (0xff/blendsteps_)*(blendsteps_ - working_ctr_%blendsteps_));
+    leds_[wipos+1] = blend(leds_[wipos+1], darkyellow, (0xff/blendsteps_)*(working_ctr_%blendsteps_));
     working_ctr_++;
-    working_ctr_%=after_full;
-    return 300;
+    working_ctr_%=charge*blendsteps_;
+    return 150;
   }
 };
 
