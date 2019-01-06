@@ -602,9 +602,10 @@ public:
 class AnimationGravityDots : public BaseAnimation
 {
 private:
-  uint8_t static const num_dots=6;
+  ledctr_t static const num_dots=6;
+  uint8_t static const blend_size_=5;
   CRGB dot_color[num_dots];
-  int8_t dot_pos[num_dots];
+  ledctr_t dot_pos[num_dots];
   int8_t dot_speed[num_dots];
 
   int8_t static const dot_gravity_limit = 3;
@@ -625,7 +626,7 @@ public:
       hsv2rgb_rainbow(dothsv,dot_color[d]);
       dothsv.h+=0xFF/num_dots;
       dot_speed[d]=dot_max_speed-(int8_t)random8(0,dot_max_speed*2);
-      dot_pos[d]=random8(0,NUM_LEDS-1);
+      dot_pos[d]=random16(0,blend_size_*(NUM_LEDS-1));
     }
     zero_move_ticks_=0;
   }
@@ -637,11 +638,11 @@ public:
     {
       for (ledctr_t d2=d1+1; d2<num_dots;d2++)
       {
-        int8_t dot_distance = dot_pos[d1] - dot_pos[d2];
+        int32_t dot_distance = dot_pos[d1] - dot_pos[d2];
         //accel/decel
         if (abs8(dot_distance) < dot_gravity_limit)
         {
-          int8_t gravity = dot_gravity_limit-(dot_distance*dot_distance/dot_gravity_limit) + (dot_distance==0)?+1-random8(0,2):0;
+          int8_t gravity = dot_gravity_limit-(static_cast<int8_t>(dot_distance)*static_cast<int8_t>(dot_distance)/dot_gravity_limit) + (dot_distance==0)?+1-random8(0,2):0;
           if (dot_distance < 0)
           {
             dot_speed[d1] += gravity;
@@ -655,24 +656,18 @@ public:
     }
 
 
-    for(int i = 0; i < NUM_LEDS; i++)
-    {
-      leds_[i].r = 0; leds_[i].g = 0; leds_[i].b = 0;
-    }
-
+    FastLED.clear();
     ledctr_t zerospeed=0;
 
     for (ledctr_t d=0; d<num_dots; d++)
     {
       dot_speed[d]=max(min(dot_speed[d],dot_max_speed),0-dot_max_speed);
-      dot_pos[d]+=dot_speed[d];
-      if (dot_pos[d] < 0)
-        dot_pos[d] += NUM_LEDS;
-      dot_pos[d]%=NUM_LEDS;
+      dot_pos[d]+=static_cast<int32_t>(dot_speed[d]) + ((dot_speed[d]<0)?blend_size_*NUM_LEDS:0);
+      dot_pos[d]%=blend_size_*NUM_LEDS;
 
-      leds_[dot_pos[d]].r+=dot_color[d].r;
-      leds_[dot_pos[d]].g+=dot_color[d].g;
-      leds_[dot_pos[d]].b+=dot_color[d].b;
+      uint8_t b = dot_pos[d] % blend_size_;
+      leds_[dot_pos[d]/blend_size_]                += blend(dot_color[d], CRGB::Black,  cubicwave8(127/blend_size_*b));
+      leds_[(dot_pos[d]/blend_size_+1) % NUM_LEDS] += blend(CRGB::Black,  dot_color[d], cubicwave8(127/blend_size_*b));
 
       zerospeed+=(dot_speed[d]==0)?1:0;
     }
@@ -688,7 +683,7 @@ public:
     {
       this->init();
     }
-    return 1000/12;
+    return 1000/42;
   }
 };
 
