@@ -4,7 +4,7 @@
 //(c) Bernhard Tittelbach, xro@realraum.at, 2018
 //MIT license, except where code from other projects was borrowed and other licenses might apply
 
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP8266)
 #include "gpio.h"
 #endif
 #include <vector>
@@ -61,7 +61,7 @@ public:
 
 
 
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP8266)
 //// Puts the ESP8266 into Light Sleep Mode
 class AnimationBlackSleepESP8266 : public BaseAnimation {
 private:
